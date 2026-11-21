@@ -111,6 +111,131 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Custom Themed Scrollbar (Matches Site's Obsidian Charcoal & Gold-Orange Theme) */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #ff6b35 #090d16;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090d16;
+  border-left: 1px solid rgba(255, 107, 53, 0.08);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ff6b35 0%, #d97706 100%);
+  border-radius: 6px;
+  border: 2px solid #090d16;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff8c5a 0%, #f59e0b 100%);
+}
+
+[data-theme="light"] {
+  scrollbar-color: #ff6b35 #f8fafc;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ff6b35 0%, #ea580c 100%);
+  border: 2px solid #f8fafc;
+}
+
+/* Quick Attendance Segmented Controls */
+.attendance-filter-pills {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.15rem;
+  flex-wrap: wrap;
+}
+
+.att-filter-pill {
+  padding: 0.45rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: var(--admin-radius-pill);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-card-inner);
+  color: var(--admin-text-secondary);
+  cursor: pointer;
+  transition: var(--admin-transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.att-filter-pill:hover {
+  background: var(--admin-card-hover);
+  color: var(--admin-text-primary);
+  border-color: var(--admin-border-focus);
+}
+
+.att-filter-pill.active {
+  background: linear-gradient(135deg, #ff6b35 0%, #ea580c 100%) !important;
+  color: #fff !important;
+  border-color: #ff6b35 !important;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.35);
+}
+
+.att-filter-pill.btn-outline-success.active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+
+.att-filter-pill.btn-outline-warning.active {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+}
+
+/* Quick In-Table Check-in Buttons */
+.btn-quick-checkin {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--admin-radius-sm);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--admin-transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-quick-checkin:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.4);
+}
+
+.btn-checkin-undo {
+  background: transparent;
+  color: var(--admin-text-muted);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-xs);
+  padding: 0.15rem 0.45rem;
+  font-size: 0.7rem;
+  cursor: pointer;
+  margin-left: 0.35rem;
+  transition: var(--admin-transition);
+}
+
+.btn-checkin-undo:hover {
+  color: var(--admin-danger);
+  border-color: var(--admin-danger);
+}
+
 /* ==============================================================================
    LOGIN PORTAL STYLES (MOBILE RESPONSIVE & CENTERED)
    ============================================================================== */

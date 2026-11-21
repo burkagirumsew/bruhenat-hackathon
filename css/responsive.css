@@ -407,6 +407,47 @@
   .modal-actions .btn {
     width: 100%;
   }
+
+  /* Extra Small Phone Fitting (<= 380px, e.g. iPhone SE / Galaxy Mini) */
+  .container {
+    padding-left: 0.85rem !important;
+    padding-right: 0.85rem !important;
+  }
+
+  .reg-form-card {
+    padding: 1.5rem 1rem !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .reg-tab-btn {
+    font-size: 0.92rem !important;
+    padding: 0.75rem 1rem !important;
+  }
+
+  .brand-title {
+    font-size: 0.98rem !important;
+  }
+}
+
+/* Universal Device Fitting & Zero Horizontal Overflow */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* --------------------------------------------------------------------------

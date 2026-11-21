@@ -2191,8 +2191,31 @@
    16. REGISTRATION EXPERIENCE (DUAL PATHWAYS)
    -------------------------------------------------------------------------- */
 .registration-container {
-  max-width: 900px;
+  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
+}
+
+@media (min-width: 1024px) {
+  .registration-container {
+    max-width: 1220px;
+  }
+
+  .reg-form-card {
+    padding: 3.25rem 4.5rem !important;
+  }
+
+  .form-grid-2 {
+    gap: 2rem !important;
+    margin-bottom: 1.75rem !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .registration-container {
+    max-width: 1280px;
+  }
 }
 
 .reg-pathway-tabs {

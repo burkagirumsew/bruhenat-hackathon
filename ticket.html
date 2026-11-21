@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Official Digital Ticket — BRUH-Enat Hackathon 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .ticket-page-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2.5rem 1rem;
+      background: var(--bg-dark, #0d1117);
+    }
+    .ticket-container-box {
+      width: 100%;
+      max-width: 580px;
+      background: var(--card-bg, #161b22);
+      border: 2px solid #f97316;
+      border-radius: 20px;
+      padding: 2.25rem 2rem;
+      text-align: center;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+    .ticket-header-brand {
+      background: linear-gradient(135deg, #ea580c, #f97316, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin: 0;
+    }
+    .ticket-subtitle {
+      font-size: 0.85rem;
+      color: #fed7aa;
+      font-weight: 600;
+      margin-top: 0.25rem;
+    }
+    .qr-badge-section {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    .badge-status-pill {
+      display: inline-block;
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border: 1px solid #22c55e;
+      padding: 0.25rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.75rem;
+    }
+    .qr-canvas-holder {
+      background: #ffffff;
+      padding: 0.85rem;
+      display: inline-block;
+      border-radius: 12px;
+      margin: 0.5rem 0;
+    }
+    .qr-canvas-holder img {
+      display: block;
+      width: 190px;
+      height: 190px;
+    }
+    .code-string {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #f97316;
+      letter-spacing: 1.5px;
+      margin-top: 0.5rem;
+    }
+    .ticket-meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      text-align: left;
+    }
+    .ticket-meta-table td {
+      padding: 0.6rem 0.75rem;
+      font-size: 0.85rem;
+      border-top: 1px solid #21262d;
+    }
+    .ticket-meta-table td.label {
+      color: #8b949e;
+      width: 38%;
+    }
+    .ticket-meta-table td.val {
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .venue-box {
+      background: #21262d;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+    .venue-box h4 {
+      margin: 0 0 0.4rem 0;
+      color: #f97316;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .ticket-page-wrapper {
+        padding: 0 !important;
+      }
+      .ticket-container-box {
+        border: 2px solid #000000 !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .btn-row, .ticket-header-brand {
+        -webkit-text-fill-color: #000000 !important;
+      }
+      .btn-row {
+        display: none !important;
+      }
+      .ticket-meta-table td.val {
+        color: #000000 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ticket-page-wrapper">
+    <div class="ticket-container-box" id="ticket-box">
+      
+      <div id="loading-view">
+        <p style="color:#8b949e;">Loading official ticket pass...</p>
+      </div>
+
+      <div id="content-view" style="display:none;">
+        <h1 class="ticket-header-brand">BRUH-ENAT</h1>
+        <div class="ticket-subtitle">Women's Tech Innovation Hackathon 2026</div>
+
+        <div class="qr-badge-section">
+          <div class="badge-status-pill">Official Entry Pass • Confirmed</div>
+          <h2 id="attendee-name" style="color:#ffffff;font-size:1.35rem;margin:0 0 0.25rem 0;">Attendee Name</h2>
+          <div id="attendee-pathway" style="color:#8b949e;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;">Individual Participant</div>
+
+          <div class="qr-canvas-holder">
+            <img id="qr-img" src="" alt="BRUH-Enat QR Code">
+          </div>
+
+          <div class="code-string" id="ticket-code">BE26-XXXX-XXXX</div>
+          <p style="font-size:0.75rem;color:#8b949e;margin:0.25rem 0 0 0;">Present this barcode at the registration desk for instant check-in</p>
+
+          <table class="ticket-meta-table">
+            <tr>
+              <td class="label">Reference</td>
+              <td class="val" id="ticket-ref">BE-2026-IND-0000</td>
+            </tr>
+            <tr>
+              <td class="label">Discipline / Role</td>
+              <td class="val" id="ticket-role">Software Developer</td>
+            </tr>
+            <tr>
+              <td class="label">Track</td>
+              <td class="val" id="ticket-track">Safe Reporting & Protection</td>
+            </tr>
+            <tr>
+              <td class="label">Check-in Time</td>
+              <td class="val">Dec 5, 2026 • 08:30 AM – 09:30 AM EAT</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="venue-box">
+          <h4>Venue & Location</h4>
+          <p style="margin:0 0 0.25rem 0;color:#ffffff;font-weight:600;">Capstone ALX Tech Hub</p>
+          <p style="margin:0;color:#8b949e;">Lideta District, Addis Ababa, Ethiopia</p>
+          <a href="https://maps.app.goo.gl/XLH2PN6vTPyP2kP58" target="_blank" style="display:inline-block;margin-top:0.4rem;color:#f97316;font-size:0.8rem;text-decoration:none;">View on Google Maps &rarr;</a>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btn-download">Download Ticket (.txt)</button>
+          <button type="button" class="btn btn-secondary" onclick="window.print()">Print Ticket</button>
+          <a href="index.html" class="btn btn-secondary">Return to Home</a>
+        </div>
+      </div>
+
+      <div id="error-view" style="display:none;">
+        <h2 style="color:#ef4444;font-size:1.4rem;margin-bottom:0.5rem;">Ticket Not Found</h2>
+        <p style="color:#8b949e;font-size:0.9rem;margin-bottom:1.5rem;">The requested ticket code does not exist or has been revoked.</p>
+        <a href="index.html" class="btn btn-secondary">Return to Website</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseConfig.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+
+      const loadingView = document.getElementById('loading-view');
+      const contentView = document.getElementById('content-view');
+      const errorView = document.getElementById('error-view');
+
+      if (!code) {
+        loadingView.style.display = 'none';
+        errorView.style.display = 'block';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/tickets/${encodeURIComponent(code)}`);
+        const data = await res.json();
+
+        loadingView.style.display = 'none';
+
+        if (res.ok && data.success && data.data) {
+          const t = data.data;
+          contentView.style.display = 'block';
+
+          document.getElementById('attendee-name').textContent = t.attendee.fullName;
+          document.getElementById('attendee-pathway').textContent = t.registration.teamName 
+            ? `Team: ${t.registration.teamName}`
+            : `${t.registration.pathway} Participant`;
+
+          document.getElementById('qr-img').src = t.qrData;
+          document.getElementById('ticket-code').textContent = t.ticketCode;
+          document.getElementById('ticket-ref').textContent = t.registration.referenceCode;
+          document.getElementById('ticket-role').textContent = t.attendee.discipline;
+          document.getElementById('ticket-track').textContent = t.attendee.preferredTrack;
+
+          // Download Ticket
+          document.getElementById('btn-download').onclick = () => {
+            const txt = `
+============================================================
+BRUH-ENAT WOMEN'S TECH INNOVATION HACKATHON 2026
+OFFICIAL DIGITAL ENTRY TICKET
+============================================================
+Ticket Code    : ${t.ticketCode}
+Reference Code : ${t.registration.referenceCode}
+Attendee Name  : ${t.attendee.fullName}
+Pathway        : ${t.registration.teamName ? 'Team: ' + t.registration.teamName : t.registration.pathway}
+Track          : ${t.attendee.preferredTrack}
+Status         : ${t.status}
+
+EVENT DETAILS:
+Sprint Date : Saturday, December 5, 2026
+Check-in    : 08:30 AM – 09:30 AM EAT
+Venue       : Capstone ALX Tech Hub, Lideta, Addis Ababa, Ethiopia
+Maps Link   : https://maps.app.goo.gl/XLH2PN6vTPyP2kP58
+============================================================`.trim();
+
+            const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Bruh-Enat-${t.ticketCode}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+          };
+        } else {
+          errorView.style.display = 'block';
+        }
+      } catch (err) {
+        loadingView.style.display = 'none';
+        errorView.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

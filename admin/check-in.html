@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-In Station — BRUH-Enat Hackathon 2026</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/og-banner.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/css/admin.css">
+  <!-- HTML5 QR Code Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="brand-section">
+      <span class="brand-badge">DESK SCANNER</span>
+      <div>
+        <h1 class="brand-title">BRUH-Enat Check-In Station</h1>
+        <p class="brand-subtitle" id="active-session-text">Loading active session...</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button id="mute-sound-btn" class="btn btn-secondary btn-sm" title="Toggle audio chime">
+        <span id="sound-icon">🔔</span> <span id="sound-label">Audio On</span>
+      </button>
+
+      <a id="dashboard-link" href="/admin" class="btn btn-secondary btn-sm" style="display: none;">
+        ← Admin Dashboard
+      </a>
+
+      <div class="user-badge">
+        <span id="user-name">Staff</span>
+        <span id="user-role" class="role-pill role-CHECKIN_STAFF">STAFF</span>
+      </div>
+
+      <button id="logout-btn" class="btn btn-secondary btn-sm">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- Main Scanner & Desk Interface -->
+  <main class="admin-container">
+    <!-- Big Alert Banner for Scan Results -->
+    <div id="result-banner" class="result-card" style="margin-bottom: 1.5rem;">
+      <div id="result-content"></div>
+    </div>
+
+    <div class="checkin-layout">
+      <!-- Left Column: Camera Scanner & Direct Input -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">📷 Live Camera QR Scanner</h2>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="toggle-scanner-btn" class="btn btn-primary btn-sm">Start Camera</button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div class="scanner-box" id="scanner-container">
+            <div id="reader"></div>
+            <div id="scanner-placeholder" style="text-align: center; padding: 2rem; color: var(--admin-text-secondary);">
+              <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📷</div>
+              <p>Click <strong>Start Camera</strong> to activate scanner</p>
+              <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--admin-text-muted);">
+                Supports phone back cameras, laptops, and USB barcode/QR scanners
+              </p>
+            </div>
+          </div>
+
+          <!-- Direct Ticket Code Manual Barcode Entry -->
+          <div style="margin-top: 1.25rem;">
+            <label class="form-label" for="manual-code-input">Or Enter Ticket Code Directly:</label>
+            <form id="manual-code-form" style="display: flex; gap: 0.5rem;">
+              <input 
+                type="text" 
+                id="manual-code-input" 
+                class="form-control" 
+                placeholder="BE26-XXXX-XXXX" 
+                autocomplete="off"
+                style="text-transform: uppercase; font-family: monospace; font-size: 1.1rem; letter-spacing: 1px;"
+              >
+              <button type="submit" class="btn btn-primary" id="validate-code-btn">Validate</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Attendee Lookup & Recent Scans -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">🔍 Quick Attendee Lookup</h2>
+          <span class="badge badge-teal" id="attendees-count-badge">Search DB</span>
+        </div>
+
+        <div class="panel-body">
+          <div class="search-input-wrap" style="margin-bottom: 1rem;">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              id="lookup-input" 
+              class="search-input" 
+              placeholder="Search by name, email, phone, or reference code..."
+            >
+          </div>
+
+          <!-- Search results list -->
+          <div id="lookup-results" style="max-height: 250px; overflow-y: auto; margin-bottom: 1.5rem;">
+            <p style="font-size: 0.85rem; color: var(--admin-text-muted); text-align: center; padding: 1rem;">
+              Type a name or email to look up an attendee for manual check-in.
+            </p>
+          </div>
+
+          <!-- Recent Check-In Live Feed -->
+          <div style="border-top: 1px solid var(--admin-border); padding-top: 1rem;">
+            <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--admin-text-secondary); text-transform: uppercase; margin-bottom: 0.75rem;">
+              ⚡ Recent Desk Check-Ins
+            </h3>
+            <div id="recent-feed" style="max-height: 240px; overflow-y: auto;">
+              <p style="font-size: 0.85rem; color: var(--admin-text-muted); text-align: center; padding: 0.75rem;">
+                No check-ins recorded yet for this session.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Manual Check-In Modal with Reason -->
+  <div id="manual-checkin-modal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="panel-title">Manual Check-In Confirmation</h3>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeManualModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="manual-attendee-summary" style="margin-bottom: 1.25rem;"></div>
+        <div class="form-group">
+          <label class="form-label" for="manual-reason-select">Reason for Manual Check-In <span style="color: var(--admin-danger);">*</span></label>
+          <select id="manual-reason-select" class="form-control" style="margin-bottom: 0.5rem;">
+            <option value="Phone battery died / no digital pass displayed">Phone battery died / no digital pass displayed</option>
+            <option value="Camera scan glare / cracked screen reflection">Camera scan glare / cracked screen reflection</option>
+            <option value="Printed ticket paper damaged or smudged">Printed ticket paper damaged or smudged</option>
+            <option value="Verified photo ID matches registration list">Verified photo ID matches registration list</option>
+            <option value="Organizing committee authorized manual check-in">Organizing committee authorized manual check-in</option>
+            <option value="Other">Other (specify below)</option>
+          </select>
+          <input type="text" id="manual-reason-other" class="form-control" placeholder="Specify custom reason..." style="display: none; margin-top: 0.5rem;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeManualModal()">Cancel</button>
+        <button type="button" class="btn btn-success" id="confirm-manual-btn">Confirm Check-In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseConfig.js"></script>
+  <script src="/admin/js/checkin.js"></script>
+</body>
+</html>

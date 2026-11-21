@@ -1,0 +1,38 @@
+# Environment variables
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+
+# Secrets, Keys & Service Account Credentials
+*service-account*.json
+*credentials*.json
+google-service-account.json
+*.pem
+*.key
+*.cert
+*.crt
+!backend/config/prod-ca-2021.crt
+
+# Node.js Dependencies & Logs
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Database & SQLite files
+*.db
+*.sqlite
+*.sqlite3
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Backups & Scratch
+.backup/
+**/.backup/
+scratch/

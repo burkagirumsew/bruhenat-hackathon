@@ -1,0 +1,83 @@
+# ==============================================================================
+# BRUH-ENAT HACKATHON 2026 - APACHE / DIRECTADMIN CONFIGURATION
+# Optimized for DirectAdmin public_html static hosting
+# ==============================================================================
+
+# 1. Directory Index
+DirectoryIndex index.html index.php index.htm
+
+# 2. Rewrite Engine & Clean URLs
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # DirectAdmin Native API Routing
+  RewriteRule ^api/(.*)$ api/index.php [L,QSA]
+  RewriteRule ^api/?$ api/index.php [L,QSA]
+
+  # Specific named routes
+  RewriteRule ^admin/check-in/?$ admin/check-in.html [L,QSA]
+  RewriteRule ^admin/login/?$ admin/login.html [L,QSA]
+  RewriteRule ^admin/?$ admin/index.html [L,QSA]
+  RewriteRule ^verify/?$ verify.html [L,QSA]
+  RewriteRule ^ticket/?$ ticket.html [L,QSA]
+
+  # Allow access to existing files and directories
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Generic extensionless HTML rewriting
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^([^/]+)/?$ $1.html [L,QSA]
+
+  RewriteCond %{DOCUMENT_ROOT}/admin/$1.html -f
+  RewriteRule ^admin/([^/]+)/?$ admin/$1.html [L,QSA]
+</IfModule>
+
+# 3. MIME Types Configuration
+<IfModule mod_mime.c>
+  AddType text/html .html
+  AddType text/css .css
+  AddType text/javascript .js .mjs
+  AddType application/json .json
+  AddType image/svg+xml .svg .svgz
+  AddType image/webp .webp
+  AddType image/png .png
+  AddType image/jpeg .jpg .jpeg
+  AddType image/x-icon .ico
+  AddType application/pdf .pdf
+  AddCharset UTF-8 .html .css .js .json .svg
+</IfModule>
+
+# 4. Gzip / Deflate Compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE text/javascript
+  AddOutputFilterByType DEFLATE text/plain
+  AddOutputFilterByType DEFLATE text/xml
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/json
+  AddOutputFilterByType DEFLATE application/xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# 5. Security & Browser Caching Headers
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-XSS-Protection "1; mode=block"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Cache static assets for 1 week
+  <FilesMatch "\.(ico|pdf|jpg|jpeg|png|svg|webp|css|js|mjs)$">
+    Header set Cache-Control "max-age=604800, public"
+  </FilesMatch>
+
+  # HTML pages revalidate
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+  </FilesMatch>
+</IfModule>

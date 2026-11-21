@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — BRUH-Enat Women's Tech Innovation Hackathon 2026</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/og-banner.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body>
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <span class="brand-badge">BRUH-ENAT 2026</span>
+        <h1 style="font-size: 1.5rem; font-weight: 700; margin-top: 0.75rem; color: var(--admin-text-primary);">
+          Command Center Login
+        </h1>
+        <p style="font-size: 0.85rem; color: var(--admin-text-secondary); margin-top: 0.25rem;">
+          Authorized staff & administrator access only
+        </p>
+      </div>
+
+      <div id="login-alert" class="alert alert-danger" role="alert"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="login-email">Administrator Email</label>
+          <input 
+            type="email" 
+            id="login-email" 
+            class="form-control" 
+            placeholder="admin@bruhenat-hackathon.org" 
+            required 
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="login-password">Password</label>
+          <input 
+            type="password" 
+            id="login-password" 
+            class="form-control" 
+            placeholder="••••••••••••" 
+            required 
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" id="login-btn" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; padding: 0.75rem;">
+          <span id="btn-text">Authenticate Session</span>
+          <span id="btn-spinner" style="display: none;">Verifying...</span>
+        </button>
+      </form>
+
+      <div style="margin-top: 1.75rem; text-align: center; font-size: 0.775rem; color: var(--admin-text-muted);">
+        <p>Protected by rate limiting & encrypted session tokens.</p>
+        <p style="margin-top: 0.25rem;"><a href="/" style="color: var(--admin-primary); text-decoration: none;">← Return to Public Website</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Quick auto-redirect if session is still valid
+    (async function checkExistingAuth() {
+      try {
+        const res = await fetch('/api/admin/me', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.admin) {
+            if (data.admin.role === 'CHECKIN_STAFF') {
+              window.location.href = '/admin/check-in';
+            } else {
+              window.location.href = '/admin';
+            }
+          }
+        }
+      } catch (e) {
+        // Not logged in, proceed to login form
+      }
+    })();
+
+    const form = document.getElementById('login-form');
+    const alertBox = document.getElementById('login-alert');
+    const btn = document.getElementById('login-btn');
+    const btnText = document.getElementById('btn-text');
+    const btnSpinner = document.getElementById('btn-spinner');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      alertBox.className = 'alert alert-danger';
+      alertBox.textContent = '';
+      alertBox.style.display = 'none';
+
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      if (!email || !password) return;
+
+      btn.disabled = true;
+      btnText.style.display = 'none';
+      btnSpinner.style.display = 'inline';
+
+      try {
+        const response = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // Store token in localStorage as backup for Authorization header
+          if (data.token) {
+            localStorage.setItem('bruh_enat_admin_token', data.token);
+            localStorage.setItem('bruh_enat_admin_user', JSON.stringify(data.admin));
+          }
+
+          if (data.admin && data.admin.role === 'CHECKIN_STAFF') {
+            window.location.href = '/admin/check-in';
+          } else {
+            window.location.href = '/admin';
+          }
+        } else {
+          alertBox.textContent = data.error || 'Authentication failed. Please check credentials.';
+          alertBox.style.display = 'block';
+        }
+      } catch (err) {
+        alertBox.textContent = 'Network or server error. Please try again.';
+        alertBox.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Registration - BRUH-Enat Hackathon 2026</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #0d1117; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #e6edf3; }
+    .wrapper { width: 100%; max-width: 600px; margin: 0 auto; background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; overflow: hidden; }
+    .header { background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #f59e0b 100%); padding: 32px 24px; text-align: center; }
+    .brand-title { color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+    .brand-amharic { color: #fed7aa; margin: 4px 0 0 0; font-size: 14px; font-weight: 600; }
+    .brand-sub { color: #ffffff; opacity: 0.9; margin: 8px 0 0 0; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+    .content { padding: 32px 28px; }
+    .greeting { font-size: 18px; font-weight: 600; color: #ffffff; margin-top: 0; }
+    p { font-size: 15px; line-height: 1.6; color: #c9d1d9; margin: 16px 0; }
+    .highlight-card { background: #21262d; border-left: 4px solid #f97316; border-radius: 8px; padding: 18px 20px; margin: 24px 0; }
+    .highlight-card p { margin: 6px 0; font-size: 14px; }
+    .btn-container { text-align: center; margin: 32px 0; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: #ffffff !important; text-decoration: none; font-size: 16px; font-weight: 700; padding: 14px 32px; border-radius: 8px; box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4); }
+    .token-box { background: #0d1117; border: 1px dashed #30363d; border-radius: 6px; padding: 12px; font-family: Courier, monospace; font-size: 13px; color: #f97316; word-break: break-all; margin-top: 8px; }
+    .footer { background: #0d1117; border-top: 1px solid #30363d; padding: 24px; text-align: center; font-size: 12px; color: #8b949e; }
+    .footer p { margin: 4px 0; font-size: 12px; color: #8b949e; }
+    .partner-list { font-weight: 600; color: #c9d1d9; }
+  </style>
+</head>
+<body>
+  <div style="padding: 24px 12px;">
+    <div class="wrapper">
+      <div class="header">
+        <h1 class="brand-title">BRUH-ENAT</h1>
+        <div class="brand-amharic">ብሩህ እናት • Women's Tech Innovation Hackathon 2026</div>
+        <div class="brand-sub">Empower • Protect • Transform</div>
+      </div>
+      <div class="content">
+        <h2 class="greeting">Hello {{fullName}},</h2>
+        <p>Thank you for applying to the <strong>BRUH-Enat Women's Tech Innovation Hackathon 2026</strong> as an individual participant!</p>
+        <p>To verify your email address and officially activate your application, please click the verification button below:</p>
+        
+        <div class="btn-container">
+          <a href="{{verificationUrl}}" class="btn" target="_blank">Verify Email & Activate Application</a>
+        </div>
+
+        <div class="highlight-card">
+          <p><strong>Application Reference:</strong> {{referenceCode}}</p>
+          <p><strong>Primary Discipline:</strong> {{discipline}}</p>
+          <p><strong>Preferred Track:</strong> {{trackName}}</p>
+          <p><strong>Team Matching:</strong> {{teamMatchingNotice}}</p>
+          <p><strong>Verification Expires:</strong> {{expiresInHours}} hours</p>
+        </div>
+
+        <p style="font-size: 13px; color: #8b949e;">If the button above does not work, copy and paste this verification URL into your browser:</p>
+        <div class="token-box">{{verificationUrl}}</div>
+
+        <p style="margin-top: 24px; font-size: 13px; color: #8b949e;">
+          <strong>Important Note:</strong> Official QR tickets will be issued immediately upon completing email verification. If you did not apply for this hackathon, please safely disregard this email.
+        </p>
+      </div>
+      <div class="footer">
+        <p class="partner-list">ALX Ethiopia • UN Women • Enat Bank • Ministry of Innovation & Technology (MiNT)</p>
+        <p>Venue: Capstone ALX Tech Hub, Lideta, Addis Ababa, Ethiopia</p>
+        <p>Dates: December 5–6, 2026 • 16 Days of Activism Against Gender-Based Violence</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

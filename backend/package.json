@@ -1,0 +1,40 @@
+{
+  "name": "bruh-enat-hackathon-backend",
+  "version": "1.0.0",
+  "description": "Backend registration, email verification, QR ticketing, admin dashboard, check-in, and Google Sheets synchronization platform for BRUH-Enat Women's Tech Innovation Hackathon 2026.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node tests/run-all.js",
+    "migrate": "node database/migrate.js",
+    "seed": "node database/seed.js",
+    "create-admin": "node src/utils/createAdmin.js",
+    "reset-admin": "node src/utils/createAdmin.js --reset",
+    "sync-sheets": "node src/utils/syncSheetsManual.js",
+    "retry-emails": "node src/utils/retryEmailsCLI.js"
+  },
+  "keywords": [
+    "bruh-enat",
+    "hackathon",
+    "registration",
+    "qr-ticketing",
+    "event-management",
+    "google-sheets-api"
+  ],
+  "author": "BRUH-Enat Organizing Committee",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "googleapis": "^140.0.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0",
+    "qrcode": "^1.5.3",
+    "uuid": "^10.0.0"
+  }
+}

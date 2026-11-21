@@ -1,0 +1,8 @@
+name = "biruh-enat-api"
+main = "cloudflare-worker.js"
+compatibility_date = "2024-03-14"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "biruh-enat-db"
+database_id = "PASTE_NEW_BIRUH_ENAT_D1_DATABASE_ID_HERE"

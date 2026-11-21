@@ -1,0 +1,26 @@
+# ==============================================================================
+# BRUH-ENAT HACKATHON 2026 - DIRECTADMIN API ROUTING (.htaccess)
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /api/
+
+  # Pass all requests inside /api/ that do not match physical files to index.php
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ index.php [L,QSA]
+</IfModule>
+
+# Security: Deny direct access to sqlite databases and json files inside api/
+<FilesMatch "\.(sqlite|sqlite3|db|json)$">
+  Order deny,allow
+  Deny from all
+</FilesMatch>
+
+# Allow CORS if needed
+<IfModule mod_headers.c>
+  Header set Access-Control-Allow-Origin "*"
+  Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+  Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+</IfModule>

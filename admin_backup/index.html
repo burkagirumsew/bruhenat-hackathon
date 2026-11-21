@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Command Center — BRUH-Enat Hackathon 2026</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/og-banner.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+<body>
+  <!-- Admin Header -->
+  <header class="admin-header">
+    <div class="brand-section">
+      <span class="brand-badge">BRUH-ENAT 2026</span>
+      <div>
+        <h1 class="brand-title">Organizer Command Center</h1>
+        <p class="brand-subtitle" id="header-active-session">Checking active event session...</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <!-- Quick link to Desk Check-In -->
+      <a href="/admin/check-in" class="btn btn-primary btn-sm">
+        📷 Open Check-In Desk
+      </a>
+
+      <!-- Theme Toggle -->
+      <button id="theme-toggle-btn" class="btn btn-secondary btn-sm" title="Toggle Light / Dark mode">
+        <span id="theme-icon">☀️</span>
+      </button>
+
+      <!-- Admin Profile Badge -->
+      <div class="user-badge">
+        <span id="admin-user-name">Administrator</span>
+        <span id="admin-user-role" class="role-pill role-ADMIN">ADMIN</span>
+      </div>
+
+      <button id="admin-logout-btn" class="btn btn-secondary btn-sm">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="admin-tabs" role="tablist">
+    <button class="tab-btn active" data-tab="tab-overview">📊 Overview & Analytics</button>
+    <button class="tab-btn" data-tab="tab-attendees">👥 Attendees Directory</button>
+    <button class="tab-btn" data-tab="tab-sessions">📅 Event Sessions</button>
+    <button class="tab-btn" data-tab="tab-reports">📑 Reports & Exports</button>
+    <button class="tab-btn" data-tab="tab-sheets">📈 Google Sheets Integration</button>
+    <button class="tab-btn" data-tab="tab-audit">🔒 Security Audit Trail</button>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="admin-container">
+    <!-- =========================================================================
+         TAB 1: OVERVIEW & ANALYTICS
+         ========================================================================= -->
+    <div id="tab-overview" class="tab-pane active">
+      <!-- Top 4 Analytics Cards -->
+      <div class="stats-grid">
+        <!-- Registrations Card -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-title">Total Registrations</span>
+            <div class="stat-icon" style="background: var(--admin-primary-light); color: var(--admin-primary);">📝</div>
+          </div>
+          <div class="stat-value" id="stat-total-registrations">0</div>
+          <div class="stat-meta">
+            <span class="badge badge-primary" id="stat-individual-regs">0 Individual</span>
+            <span class="badge badge-teal" id="stat-team-regs">0 Teams</span>
+          </div>
+        </div>
+
+        <!-- Attendees Card -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-title">Total Participants</span>
+            <div class="stat-icon" style="background: var(--admin-teal-light); color: var(--admin-teal);">👥</div>
+          </div>
+          <div class="stat-value" id="stat-total-attendees">0</div>
+          <div class="stat-meta">
+            <span class="badge badge-success" id="stat-verified-count">0 Verified</span>
+            <span class="badge badge-warning" id="stat-pending-count">0 Pending</span>
+          </div>
+        </div>
+
+        <!-- Email Verification Rate Card -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-title">Verification Rate</span>
+            <div class="stat-icon" style="background: var(--admin-success-light); color: var(--admin-success);">✉️</div>
+          </div>
+          <div class="stat-value" id="stat-verification-rate">0%</div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="stat-verification-progress" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- On-Site Check-In Progress Card -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-title">Active Check-In</span>
+            <div class="stat-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">🎟️</div>
+          </div>
+          <div class="stat-value" id="stat-checkin-rate">0%</div>
+          <div class="stat-meta" id="stat-checkin-meta">
+            <span>0 checked in &bull; 0 remaining</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="stat-checkin-progress" style="width: 0%; background: #8b5cf6;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Innovation Track Breakdown -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">💡 Track Participation Breakdown</h2>
+          <span class="badge badge-neutral" id="tracks-total-badge">Real-time DB</span>
+        </div>
+        <div class="panel-body">
+          <div id="tracks-breakdown-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <p style="color: var(--admin-text-muted);">Loading track breakdown...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Panels -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">📥 Instant Data Exports</h3>
+          </div>
+          <div class="panel-body">
+            <p style="font-size: 0.875rem; color: var(--admin-text-secondary); margin-bottom: 1rem;">
+              Download formatted, UTF-8 BOM CSV files compatible with Microsoft Excel and Google Sheets.
+            </p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="downloadAttendeesCsv()">
+                Export All Attendees (.CSV)
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="downloadAttendanceCsv()">
+                Export Attendance (.CSV)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">⚡ On-Site Station Access</h3>
+          </div>
+          <div class="panel-body">
+            <p style="font-size: 0.875rem; color: var(--admin-text-secondary); margin-bottom: 1rem;">
+              Launch the high-throughput check-in desk scanner for volunteer staff.
+            </p>
+            <a href="/admin/check-in" class="btn btn-primary btn-sm">
+              Launch Check-In Desk Station →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB 2: ATTENDEES DIRECTORY
+         ========================================================================= -->
+    <div id="tab-attendees" class="tab-pane">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">👥 Registered Participants Directory</h2>
+          <span class="badge badge-primary" id="attendees-total-badge">0 Attendees</span>
+        </div>
+
+        <div class="panel-body" style="padding-bottom: 0;">
+          <!-- Filter Controls -->
+          <div class="filter-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input 
+                type="text" 
+                id="attendees-search" 
+                class="search-input" 
+                placeholder="Search by name, email, phone, reference, or team..."
+              >
+            </div>
+
+            <select id="filter-pathway" class="filter-select">
+              <option value="">All Pathways</option>
+              <option value="INDIVIDUAL">Individual</option>
+              <option value="TEAM">Team</option>
+            </select>
+
+            <select id="filter-verified" class="filter-select">
+              <option value="">All Verifications</option>
+              <option value="true">Email Verified</option>
+              <option value="false">Pending Verification</option>
+            </select>
+
+            <select id="filter-ticket-status" class="filter-select">
+              <option value="">All Ticket Statuses</option>
+              <option value="ACTIVE">Active Ticket</option>
+              <option value="REVOKED">Revoked Ticket</option>
+            </select>
+
+            <button id="reset-filters-btn" class="btn btn-secondary btn-sm">Reset</button>
+          </div>
+
+          <!-- Attendees Table -->
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Participant</th>
+                  <th>Pathway / Team</th>
+                  <th>Track</th>
+                  <th>Verification</th>
+                  <th>Ticket Pass</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="attendees-table-body">
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 2rem; color: var(--admin-text-muted);">
+                    Loading participants directory...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div class="pagination-bar">
+            <div id="pagination-info">Showing page 1 of 1</div>
+            <div class="pagination-controls">
+              <button id="prev-page-btn" class="btn btn-secondary btn-sm" disabled>&larr; Previous</button>
+              <button id="next-page-btn" class="btn btn-secondary btn-sm" disabled>Next &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB 3: EVENT SESSIONS
+         ========================================================================= -->
+    <div id="tab-sessions" class="tab-pane">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">📅 Event Sessions & Multi-Day Sprint Management</h2>
+          <button class="btn btn-primary btn-sm" onclick="openCreateSessionModal()">+ New Session</button>
+        </div>
+
+        <div class="panel-body">
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Session Code</th>
+                  <th>Session Name</th>
+                  <th>Event Date</th>
+                  <th>Hours</th>
+                  <th>Venue</th>
+                  <th>Checked In</th>
+                  <th>Desk Status</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="sessions-table-body">
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 2rem; color: var(--admin-text-muted);">
+                    Loading event sessions...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB 4: REPORTS & EXPORTS
+         ========================================================================= -->
+    <div id="tab-reports" class="tab-pane">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">📑 Attendance Reports & Official Data Exports</h2>
+        </div>
+
+        <div class="panel-body">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Attendees Export Card -->
+            <div style="background: var(--admin-card-hover); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 1.5rem;">
+              <h3 style="font-size: 1.1rem; color: var(--admin-text-primary); margin-bottom: 0.5rem;">
+                📥 Full Attendee Export
+              </h3>
+              <p style="font-size: 0.85rem; color: var(--admin-text-secondary); margin-bottom: 1.25rem;">
+                Generates a complete CSV of all registered individuals and team members, including contact details, discipline, verification status, and ticket codes.
+              </p>
+              <button class="btn btn-primary btn-sm" onclick="downloadAttendeesCsv()">
+                Download Attendees CSV
+              </button>
+            </div>
+
+            <!-- Attendance Export Card -->
+            <div style="background: var(--admin-card-hover); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 1.5rem;">
+              <h3 style="font-size: 1.1rem; color: var(--admin-text-primary); margin-bottom: 0.5rem;">
+                🎟️ Session Attendance Log
+              </h3>
+              <p style="font-size: 0.85rem; color: var(--admin-text-secondary); margin-bottom: 1.25rem;">
+                Generates an audit-ready CSV of all physical check-ins for the selected session, recording check-in timestamps, methods (QR vs Manual), and staff verifiers.
+              </p>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <select id="export-session-select" class="filter-select" style="font-size: 0.85rem;">
+                  <option value="">Active Session</option>
+                </select>
+                <button class="btn btn-primary btn-sm" onclick="downloadAttendanceCsv()">
+                  Download Attendance CSV
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary Metrics Table -->
+          <div id="attendance-report-container">
+            <h3 style="font-size: 1rem; color: var(--admin-text-primary); margin-bottom: 1rem;">
+              📊 Active Session Check-In Method Distribution
+            </h3>
+            <div id="attendance-methods-summary" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <p style="color: var(--admin-text-muted);">Loading attendance distribution...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB 5: SECURITY AUDIT TRAIL
+         ========================================================================= -->
+    <div id="tab-audit" class="tab-pane">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">🔒 Administrator Activity & Security Audit Logs</h2>
+          <span class="badge badge-neutral" id="audit-count-badge">System Logs</span>
+        </div>
+
+        <div class="panel-body" style="padding-bottom: 0;">
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Admin / User</th>
+                  <th>Action</th>
+                  <th>Target</th>
+                  <th>Details</th>
+                  <th>IP Address</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body">
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 2rem; color: var(--admin-text-muted);">
+                    Loading audit trail...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB 6: GOOGLE SHEETS INTEGRATION
+         ========================================================================= -->
+    <div id="tab-sheets" class="tab-pane">
+      <!-- Connection & Status Banner -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">📈 Google Sheets Automatic Synchronization</h2>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span id="sheets-connection-badge" class="badge badge-neutral">Checking Connection...</span>
+            <a id="open-spreadsheet-btn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="display: none;">
+              ↗ Open in Google Sheets
+            </a>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+            <div style="background: var(--admin-card-hover); padding: 1.25rem; border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+              <div style="font-size: 0.8rem; color: var(--admin-text-secondary); text-transform: uppercase;">Spreadsheet Name</div>
+              <div id="sheets-title" style="font-size: 1.25rem; font-weight: 700; color: var(--admin-text-primary); margin: 0.25rem 0;">-</div>
+              <div id="sheets-id-text" style="font-size: 0.75rem; font-family: monospace; color: var(--admin-text-muted);">ID: Not configured</div>
+            </div>
+
+            <div style="background: var(--admin-card-hover); padding: 1.25rem; border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+              <div style="font-size: 0.8rem; color: var(--admin-text-secondary); text-transform: uppercase;">Last Successful Sync</div>
+              <div id="sheets-last-success" style="font-size: 1.25rem; font-weight: 700; color: var(--admin-success); margin: 0.25rem 0;">Never</div>
+              <div id="sheets-last-attempt" style="font-size: 0.75rem; color: var(--admin-text-muted);">Last attempt: Never</div>
+            </div>
+
+            <div style="background: var(--admin-card-hover); padding: 1.25rem; border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+              <div style="font-size: 0.8rem; color: var(--admin-text-secondary); text-transform: uppercase;">Connection Diagnostics</div>
+              <div id="sheets-diag-msg" style="font-size: 0.85rem; color: var(--admin-text-primary); margin: 0.25rem 0;">Testing API credentials...</div>
+              <div style="font-size: 0.75rem; color: var(--admin-text-muted);">PostgreSQL remains the primary single source of truth.</div>
+            </div>
+          </div>
+
+          <!-- Queue Stats Cards -->
+          <div class="stats-grid" style="margin-bottom: 1.5rem;">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Total Queued</span>
+                <div class="stat-icon" style="background: var(--admin-primary-light); color: var(--admin-primary);">📋</div>
+              </div>
+              <div class="stat-value" id="sheets-stat-total">0</div>
+              <div class="stat-meta"><span>All-time queue entries</span></div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Synchronized</span>
+                <div class="stat-icon" style="background: var(--admin-success-light); color: var(--admin-success);">✓</div>
+              </div>
+              <div class="stat-value" id="sheets-stat-synced" style="color: var(--admin-success);">0</div>
+              <div class="stat-meta"><span>Confirmed in Sheets</span></div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Pending</span>
+                <div class="stat-icon" style="background: var(--admin-warning-light); color: var(--admin-warning);">⏳</div>
+              </div>
+              <div class="stat-value" id="sheets-stat-pending" style="color: var(--admin-warning);">0</div>
+              <div class="stat-meta"><span id="sheets-stat-processing">0 processing</span></div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Failed</span>
+                <div class="stat-icon" style="background: var(--admin-danger-light); color: var(--admin-danger);">✕</div>
+              </div>
+              <div class="stat-value" id="sheets-stat-failed" style="color: var(--admin-danger);">0</div>
+              <div class="stat-meta"><span id="sheets-stat-awaiting-retry">0 awaiting retry</span></div>
+            </div>
+          </div>
+
+          <!-- Controls Bar -->
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.75rem; padding: 1rem; background: var(--admin-card-hover); border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+            <button id="trigger-sync-btn" class="btn btn-primary btn-sm" onclick="triggerProcessQueue()">
+              ⚡ Process Queue Now
+            </button>
+            <button id="retry-failed-btn" class="btn btn-secondary btn-sm" onclick="retryFailedRecords()">
+              🔄 Retry Failed Records
+            </button>
+            <button id="bulk-sync-btn" class="btn btn-secondary btn-sm" onclick="triggerBulkSync()">
+              📦 Bulk Sync All Existing DB Records
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="loadGoogleSheetsTab()">
+              ↻ Refresh Status
+            </button>
+          </div>
+
+          <!-- 4 Worksheet Information Structure -->
+          <div style="margin-bottom: 1.75rem;">
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--admin-text-secondary); text-transform: uppercase; margin-bottom: 0.75rem;">
+              📑 Synchronized Worksheet Tabs & Schemas
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; font-size: 0.85rem;">
+              <div style="background: var(--admin-card-hover); padding: 1rem; border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+                <strong style="color: var(--admin-text-primary);">1. All Attendees</strong>
+                <p style="color: var(--admin-text-muted); font-size: 0.75rem; margin-top: 0.25rem;">Consolidated participant roster with verification, ticket code, and check-in summary.</p>
+              </div>
+              <div style="background: var(--admin-card-hover); padding: 1rem; border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+                <strong style="color: var(--admin-text-primary);">2. Individual Registrations</strong>
+                <p style="color: var(--admin-text-muted); font-size: 0.75rem; margin-top: 0.25rem;">Individual applicant profiles, track choices, and verification statuses.</p>
+              </div>
+              <div style="background: var(--admin-card-hover); padding: 1rem; border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+                <strong style="color: var(--admin-text-primary);">3. Team Registrations</strong>
+                <p style="color: var(--admin-text-muted); font-size: 0.75rem; margin-top: 0.25rem;">Team rosters (3–5 members per team), leader attribution, and roles.</p>
+              </div>
+              <div style="background: var(--admin-card-hover); padding: 1rem; border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+                <strong style="color: var(--admin-text-primary);">4. Attendance Records</strong>
+                <p style="color: var(--admin-text-muted); font-size: 0.75rem; margin-top: 0.25rem;">Physical event check-ins by session, scan timestamps, methods, and staff verifiers.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Synchronization Queue Table -->
+          <div>
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--admin-text-secondary); text-transform: uppercase; margin-bottom: 0.75rem;">
+              📋 Synchronization Outbox Queue
+            </h3>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Created</th>
+                    <th>Type</th>
+                    <th>Entity ID</th>
+                    <th>Target Sheet</th>
+                    <th>Status</th>
+                    <th>Retries</th>
+                    <th>Last Attempt</th>
+                    <th>Error Details</th>
+                  </tr>
+                </thead>
+                <tbody id="sheets-queue-table-body">
+                  <tr>
+                    <td colspan="8" style="text-align: center; padding: 2rem; color: var(--admin-text-muted);">
+                      Loading synchronization queue...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       MODALS
+       ========================================================================= -->
+
+  <!-- Attendee Details Drawer Modal -->
+  <div id="attendee-modal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 class="panel-title">Participant Profile & Ticket Pass</h3>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeAttendeeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="attendee-modal-body">
+        <p style="color: var(--admin-text-muted);">Loading details...</p>
+      </div>
+      <div class="modal-footer" id="attendee-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeAttendeeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Revocation Modal -->
+  <div id="revoke-modal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="panel-title" style="color: var(--admin-danger);">⚠️ Revoke Participant Ticket</h3>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeRevokeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.9rem; color: var(--admin-text-primary); margin-bottom: 1rem;">
+          Revoking this ticket will immediately bar entry at all check-in desks. This action is permanently recorded in the security audit trail.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="revoke-reason-input">Revocation Reason <span style="color: var(--admin-danger);">*</span></label>
+          <input 
+            type="text" 
+            id="revoke-reason-input" 
+            class="form-control" 
+            placeholder="e.g. Participant withdrew / Safety violation / Duplicate registration"
+            required
+          >
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeRevokeModal()">Cancel</button>
+        <button type="button" class="btn btn-outline-danger" id="confirm-revoke-btn">Confirm Revocation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Session Modal -->
+  <div id="create-session-modal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="panel-title">Add Event Session</h3>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeCreateSessionModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="create-session-form">
+          <div class="form-group">
+            <label class="form-label" for="session-code-input">Session Code <span style="color: var(--admin-danger);">*</span></label>
+            <input type="text" id="session-code-input" class="form-control" placeholder="e.g. DAY-1, DAY-2, SPRINT-AM" required style="text-transform: uppercase;">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="session-name-input">Session Name <span style="color: var(--admin-danger);">*</span></label>
+            <input type="text" id="session-name-input" class="form-control" placeholder="e.g. Day 1: Innovation Sprint & Opening" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="session-date-input">Event Date <span style="color: var(--admin-danger);">*</span></label>
+            <input type="date" id="session-date-input" class="form-control" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label class="form-label" for="session-start-input">Start Time</label>
+              <input type="text" id="session-start-input" class="form-control" placeholder="08:00 AM" value="08:00 AM">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="session-end-input">End Time</label>
+              <input type="text" id="session-end-input" class="form-control" placeholder="06:00 PM" value="06:00 PM">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="session-venue-input">Venue</label>
+            <input type="text" id="session-venue-input" class="form-control" value="Capstone ALX Tech Hub, Lideta">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeCreateSessionModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" id="save-session-btn">Save Session</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/admin/js/admin.js"></script>
+</body>
+</html>

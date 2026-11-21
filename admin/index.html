@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Command Center — BRUH-Enat Hackathon 2026</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/og-banner.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/css/admin.css">
+  <link rel="stylesheet" href="./css/admin.css">
+</head>
+<body>
+  <div class="admin-app-layout">
+    <!-- Mobile Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- =========================================================================
+         SIDEBAR NAVIGATION
+         ========================================================================= -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <a href="/admin" class="sidebar-brand">
+          <span class="sidebar-brand-badge">BE26</span>
+          <div class="sidebar-brand-text">
+            <span class="sidebar-brand-title">BRUH-ENAT</span>
+            <span class="sidebar-brand-subtitle">Organizer Command Center</span>
+          </div>
+        </a>
+        <button id="sidebar-close-btn" class="sidebar-close-btn" aria-label="Close sidebar">✕</button>
+      </div>
+
+      <div class="sidebar-nav-container">
+        <div class="sidebar-section-title">Main Navigation</div>
+        
+        <button class="tab-btn active" data-tab="tab-overview">
+          <span class="tab-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+              <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+            </svg>
+          </span>
+          <span class="tab-label">Overview</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-attendees">
+          <span class="tab-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </span>
+          <span class="tab-label">Participants</span>
+          <span class="tab-badge-pill" id="sidebar-attendees-pill">Roster</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-sessions">
+          <span class="tab-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </span>
+          <span class="tab-label">Event Sessions</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-reports">
+          <span class="tab-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </span>
+          <span class="tab-label">Reports</span>
+        </button>
+
+        <div class="sidebar-section-title" style="margin-top: 0.75rem;">Platform & Audit</div>
+
+        <button class="tab-btn" data-tab="tab-sheets">
+          <span class="tab-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3h18v18H3z"></path>
+              <path d="M3 9h18"></path>
+              <path d="M3 15h18"></path>
+              <path d="M9 3v18"></path>
+              <path d="M15 3v18"></path>
+            </svg>
+          </span>
+          <span class="tab-label">Integrations</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-audit">
+          <span class="tab-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
+          </span>
+          <span class="tab-label">Audit Logs</span>
+        </button>
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="/admin/check-in" class="sidebar-cta-btn" title="Launch the dedicated high-speed desk check-in station">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          <span>Launch Check-In Desk</span>
+        </a>
+        <div class="system-status-indicator">
+          <span class="status-dot"></span>
+          <span>Cloudflare D1 &bull; Active</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- =========================================================================
+         MAIN APPLICATION WRAPPER
+         ========================================================================= -->
+    <div class="admin-main-wrapper">
+      <!-- Minimalist Topbar Navigation -->
+      <header class="admin-topbar">
+        <div class="topbar-left">
+          <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle navigation menu">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+
+          <div class="breadcrumb-trail">
+            <span class="breadcrumb-app">BRUH-ENAT 2026</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current" id="current-view-title">Overview</span>
+          </div>
+
+          <div class="topbar-session-pill" title="Current Active Check-in Target Session">
+            <span class="session-pulse"></span>
+            <span id="header-active-session">Checking active event session...</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Theme Toggle -->
+          <button id="theme-toggle-btn" class="btn btn-secondary btn-sm" title="Toggle Light / Dark mode">
+            <span id="theme-icon">☀️</span>
+          </button>
+
+          <!-- Admin Profile Badge -->
+          <div class="user-badge">
+            <div class="user-avatar-initials" id="admin-avatar-initials">A</div>
+            <div class="user-badge-text">
+              <span id="admin-user-name">Administrator</span>
+              <span id="admin-user-role" class="role-pill role-ADMIN">ADMIN</span>
+            </div>
+          </div>
+
+          <button id="admin-logout-btn" class="btn btn-secondary btn-sm" title="Sign out of command center">Sign Out</button>
+        </div>
+      </header>
+
+      <!-- Main Container -->
+      <main class="admin-container">
+        <!-- =======================================================================
+             TAB 1: OVERVIEW DASHBOARD
+             ======================================================================= -->
+        <div id="tab-overview" class="tab-pane active">
+          <!-- 4 Executive KPI Cards -->
+          <div class="stats-grid">
+            <!-- 1. Total Registrations Card -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Total Registrations</span>
+                <div class="stat-icon" style="background: var(--admin-primary-light); color: var(--admin-primary);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="stat-total-registrations">0</div>
+              <div class="stat-meta">
+                <span class="badge badge-primary" id="stat-individual-regs">0 Individual</span>
+                <span class="badge badge-teal" id="stat-team-regs">0 Teams</span>
+              </div>
+            </div>
+
+            <!-- 2. Total Participants Card -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Total Participants</span>
+                <div class="stat-icon" style="background: var(--admin-teal-light); color: var(--admin-teal);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="stat-total-attendees">0</div>
+              <div class="stat-meta">
+                <span class="badge badge-success" id="stat-verified-count">0 Verified</span>
+                <span class="badge badge-warning" id="stat-pending-count">0 Pending</span>
+              </div>
+            </div>
+
+            <!-- 3. Email Verification Rate Card -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Email Verification</span>
+                <div class="stat-icon" style="background: var(--admin-success-light); color: var(--admin-success);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="stat-verification-rate">0%</div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="stat-verification-progress" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- 4. Event Attendance Card -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Event Attendance</span>
+                <div class="stat-icon" style="background: var(--admin-purple-light); color: var(--admin-purple);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="stat-checkin-rate">0%</div>
+              <div class="stat-meta" id="stat-checkin-meta">
+                <span>0 checked in &bull; 0 remaining</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="stat-checkin-progress" style="width: 0%; background: #8b5cf6;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Secondary Overview Grid: Track Breakdown & Registration Snapshot -->
+          <div class="overview-grid-2">
+            <!-- A. Innovation Track Breakdown -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18h6"></path>
+                    <path d="M10 22h4"></path>
+                    <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
+                  </svg>
+                  <span>Innovation Track Breakdown</span>
+                </h2>
+                <span class="badge badge-neutral" id="tracks-total-badge">Tracks</span>
+              </div>
+              <div class="panel-body">
+                <div id="tracks-breakdown-grid">
+                  <p style="color: var(--admin-text-muted); font-size: 0.85rem;">Loading track breakdown...</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- B. Registration and Attendance Overview -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                  </svg>
+                  <span>Registration &amp; Attendance Snapshot</span>
+                </h2>
+                <span class="badge badge-neutral">Live Database</span>
+              </div>
+              <div class="panel-body">
+                <div class="overview-metrics-grid" id="registration-overview-grid">
+                  <div class="metric-pill-card">
+                    <span class="metric-pill-label">Pathway Distribution</span>
+                    <span class="metric-pill-value" id="overview-pathway-ratio">0 Ind / 0 Teams</span>
+                    <span class="metric-pill-subtext" id="overview-pathway-detail">0 total registrations</span>
+                  </div>
+                  <div class="metric-pill-card">
+                    <span class="metric-pill-label">Verified Percentage</span>
+                    <span class="metric-pill-value" id="overview-verified-ratio" style="color: var(--admin-success);">0%</span>
+                    <span class="metric-pill-subtext">Confirmed email credentials</span>
+                  </div>
+                  <div class="metric-pill-card">
+                    <span class="metric-pill-label">Active Ticket Passes</span>
+                    <span class="metric-pill-value" id="overview-active-tickets" style="color: var(--admin-primary);">0</span>
+                    <span class="metric-pill-subtext" id="overview-revoked-tickets">0 revoked passes</span>
+                  </div>
+                  <div class="metric-pill-card">
+                    <span class="metric-pill-label">Check-In Desk Status</span>
+                    <span class="metric-pill-value" id="overview-checkin-status" style="color: var(--admin-teal);">Ready</span>
+                    <span class="metric-pill-subtext" id="overview-session-name">Session target</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- C. Focused Quick Actions -->
+          <div class="overview-quick-actions">
+            <button type="button" class="overview-action-card" onclick="document.querySelector('.tab-btn[data-tab=\'tab-attendees\']').click()">
+              <div class="action-card-icon" style="background: var(--admin-primary-light); color: var(--admin-primary);">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <div class="action-card-text">
+                <h4>Manage Participants</h4>
+                <p>Search participant profiles, filter innovation tracks, verify credentials, and manage ticket passes.</p>
+              </div>
+              <span class="action-card-arrow">&rarr;</span>
+            </button>
+
+            <a href="/admin/check-in" class="overview-action-card">
+              <div class="action-card-icon" style="background: var(--admin-teal-light); color: var(--admin-teal);">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+              </div>
+              <div class="action-card-text">
+                <h4>Open Check-In Desk</h4>
+                <p>Launch the dedicated on-site station with live camera QR scanning, audio chimes, and instant validation.</p>
+              </div>
+              <span class="action-card-arrow">&rarr;</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- =======================================================================
+             TAB 2: PARTICIPANTS DIRECTORY (MODERN CRM WORKSPACE)
+             ======================================================================= -->
+        <div id="tab-attendees" class="tab-pane">
+          <div class="panel">
+            <div class="panel-header">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <h2 class="panel-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  <span>Participants Directory</span>
+                </h2>
+                <span class="badge badge-primary" id="attendees-total-badge">0 Participants</span>
+              </div>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button class="btn btn-secondary btn-sm" onclick="loadAttendees()" title="Refresh participant directory">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                  </svg>
+                  <span>Refresh</span>
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="downloadAttendeesCsv()" title="Export all participants to CSV">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <!-- CRM Search & Filter Toolbar -->
+              <div class="directory-toolbar">
+                <div class="search-input-wrap">
+                  <span class="search-icon">🔍</span>
+                  <input 
+                    type="text" 
+                    id="attendees-search" 
+                    class="search-input" 
+                    placeholder="Search by participant name, email, phone, reference ID, team, or ticket pass..."
+                    autocomplete="off"
+                  >
+                </div>
+
+                <button id="toggle-filters-btn" class="btn btn-secondary btn-sm" type="button" title="Expand / collapse filter options">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>Filters</span>
+                  <span class="badge badge-primary" id="active-filter-count" style="display: none; padding: 0.1rem 0.35rem; font-size: 0.65rem;">0</span>
+                </button>
+              </div>
+
+              <!-- Expandable Filter Panel -->
+              <div class="filter-panel" id="filters-panel">
+                <div class="filter-grid">
+                  <div class="filter-item">
+                    <label class="filter-label" for="filter-pathway">Pathway</label>
+                    <select id="filter-pathway" class="filter-select" title="Filter by registration pathway">
+                      <option value="">All Pathways</option>
+                      <option value="INDIVIDUAL">Individual</option>
+                      <option value="TEAM">Team</option>
+                    </select>
+                  </div>
+
+                  <div class="filter-item">
+                    <label class="filter-label" for="filter-track">Innovation Track</label>
+                    <select id="filter-track" class="filter-select" title="Filter by innovation track">
+                      <option value="">All Tracks</option>
+                      <option value="Track 1 – Safe Reporting & Digital Protection">Track 1 – Safe Reporting &amp; Digital Protection</option>
+                      <option value="Track 2 – AI-Powered Information & Support">Track 2 – AI-Powered Information &amp; Support</option>
+                      <option value="Track 3 – Access to Support & Service Coordination">Track 3 – Access to Support &amp; Service Coordination</option>
+                      <option value="Track 4 – Prevention, Awareness & Online Safety">Track 4 – Prevention, Awareness &amp; Online Safety</option>
+                    </select>
+                  </div>
+
+                  <div class="filter-item">
+                    <label class="filter-label" for="filter-verified">Verification</label>
+                    <select id="filter-verified" class="filter-select" title="Filter by email verification">
+                      <option value="">All Verifications</option>
+                      <option value="true">✓ Email Verified</option>
+                      <option value="false">⏳ Pending Verification</option>
+                    </select>
+                  </div>
+
+                  <div class="filter-item">
+                    <label class="filter-label" for="filter-participant-status">Participant Status</label>
+                    <select id="filter-participant-status" class="filter-select" title="Filter by participant status">
+                      <option value="">All Registered</option>
+                      <option value="CHECKED_IN">Checked In</option>
+                      <option value="NOT_CHECKED_IN">Not Checked In</option>
+                    </select>
+                  </div>
+
+                  <div class="filter-item">
+                    <label class="filter-label" for="filter-sort">Sort By</label>
+                    <select id="filter-sort" class="filter-select" title="Sort attendee roster">
+                      <option value="created_at:DESC">Newest First</option>
+                      <option value="created_at:ASC">Oldest First</option>
+                      <option value="full_name:ASC">Name (A–Z)</option>
+                      <option value="full_name:DESC">Name (Z–A)</option>
+                      <option value="email:ASC">Email (A–Z)</option>
+                    </select>
+                  </div>
+
+                  <div class="filter-item">
+                    <label class="filter-label" for="filter-limit">Rows</label>
+                    <select id="filter-limit" class="filter-select" title="Rows per page">
+                      <option value="20">20 / page</option>
+                      <option value="50">50 / page</option>
+                      <option value="100">100 / page</option>
+                    </select>
+                  </div>
+
+                  <div class="filter-item" style="justify-content: flex-end;">
+                    <button id="reset-filters-btn" class="btn btn-secondary btn-sm" title="Clear all filters" style="width: 100%;">
+                      Reset All
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Active Filter Chips Bar -->
+              <div class="filter-chips-bar" id="filter-chips-bar"></div>
+
+              <!-- Data Table -->
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Participant</th>
+                      <th>Registration ID</th>
+                      <th>Pathway / Team</th>
+                      <th>Track &amp; Discipline</th>
+                      <th>Verification</th>
+                      <th>Participant Status</th>
+                      <th style="text-align: right;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="attendees-table-body">
+                    <tr>
+                      <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--admin-text-muted);">
+                        Loading participants directory...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination Bar -->
+              <div class="pagination-bar">
+                <div id="pagination-info">Showing page 1 of 1</div>
+                <div class="pagination-controls">
+                  <button id="prev-page-btn" class="btn btn-secondary btn-sm" disabled>&larr; Previous</button>
+                  <span id="pagination-pages" style="display: flex; gap: 0.25rem; align-items: center;"></span>
+                  <button id="next-page-btn" class="btn btn-secondary btn-sm" disabled>Next &rarr;</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =======================================================================
+             TAB 3: EVENT SESSIONS
+             ======================================================================= -->
+        <div id="tab-sessions" class="tab-pane">
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Event Sessions &amp; Sprint Management</span>
+              </h2>
+              <button class="btn btn-primary btn-sm" onclick="openCreateSessionModal()">+ New Session</button>
+            </div>
+
+            <div class="panel-body">
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Session Code</th>
+                      <th>Session Name</th>
+                      <th>Event Date</th>
+                      <th>Hours</th>
+                      <th>Venue</th>
+                      <th>Checked In</th>
+                      <th>Desk Status</th>
+                      <th style="text-align: right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sessions-table-body">
+                    <tr>
+                      <td colspan="8" style="text-align: center; padding: 2rem; color: var(--admin-text-muted);">
+                        Loading event sessions...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =======================================================================
+             TAB 4: REPORTS & EXPORTS
+             ======================================================================= -->
+        <div id="tab-reports" class="tab-pane">
+          <div class="reports-grid">
+            <!-- A. Participant Reports Card -->
+            <div class="report-export-card">
+              <div class="report-card-header">
+                <h3 class="report-card-title">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  <span>Participant Reports</span>
+                </h3>
+                <p class="report-card-desc">
+                  Export complete registration roster with individual and team member contacts, innovation track selections, email verification records, and digital ticket codes. Formatted in Excel-compatible UTF-8 BOM CSV.
+                </p>
+              </div>
+              <div>
+                <button class="btn btn-primary btn-sm" onclick="downloadAttendeesCsv()">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download Full Attendees CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- B. Attendance Reports Card -->
+            <div class="report-export-card">
+              <div class="report-card-header">
+                <h3 class="report-card-title">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                  </svg>
+                  <span>Session Attendance Reports</span>
+                </h3>
+                <p class="report-card-desc">
+                  Export physical check-in audit records for the selected event session, including scan timestamps, check-in methods (Camera QR vs Manual Desk), and verifier staff credentials.
+                </p>
+              </div>
+              <div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                  <select id="export-session-select" class="filter-select" style="max-width: 250px;">
+                    <option value="">Active Session</option>
+                  </select>
+                  <button class="btn btn-primary btn-sm" onclick="downloadAttendanceCsv()">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Download Attendance CSV</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attendance Method Distribution Summary -->
+          <div class="panel">
+            <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <h2 class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                <span>Attendance Method Distribution (<span id="attendance-dist-session-name">Active Session</span>)</span>
+              </h2>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="loadAttendanceDistribution()" title="Refresh attendance distribution">
+                ↻ Refresh
+              </button>
+            </div>
+            <div class="panel-body" id="attendance-report-container">
+              <div id="attendance-methods-summary">
+                <p style="color: var(--admin-text-muted); font-size: 0.85rem;">Loading attendance distribution...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =======================================================================
+             TAB 5: INTEGRATIONS (GOOGLE SHEETS)
+             ======================================================================= -->
+        <div id="tab-sheets" class="tab-pane">
+          <!-- Connection & Status Banner -->
+          <div class="integration-status-banner">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 600;">Integration Status</div>
+              <div style="margin-top: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span id="sheets-connection-badge" class="badge badge-neutral">Checking Connection...</span>
+                <a id="open-spreadsheet-btn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="display: none; padding: 0.2rem 0.5rem; font-size: 0.72rem;">
+                  ↗ Open in Sheets
+                </a>
+              </div>
+              <div id="sheets-diag-msg" style="font-size: 0.76rem; color: var(--admin-text-secondary); margin-top: 0.4rem;">Testing credentials...</div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.72rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 600;">Connected Spreadsheet</div>
+              <div id="sheets-title" style="font-size: 1.05rem; font-weight: 700; color: var(--admin-text-primary); margin-top: 0.25rem;">-</div>
+              <div id="sheets-id-text" style="font-size: 0.72rem; font-family: monospace; color: var(--admin-text-muted);">ID: Not configured</div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.72rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 600;">Synchronization Timestamps</div>
+              <div id="sheets-last-success" style="font-size: 0.95rem; font-weight: 700; color: var(--admin-success); margin-top: 0.25rem;">Never</div>
+              <div id="sheets-last-attempt" style="font-size: 0.72rem; color: var(--admin-text-muted);">Last attempt: Never</div>
+            </div>
+          </div>
+
+          <!-- Queue Stats Summary -->
+          <div class="stats-grid" style="margin-bottom: 1.25rem;">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Total Queued</span>
+                <div class="stat-icon" style="background: var(--admin-primary-light); color: var(--admin-primary);">📋</div>
+              </div>
+              <div class="stat-value" id="sheets-stat-total">0</div>
+              <div class="stat-meta"><span>All-time queue entries</span></div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Synchronized</span>
+                <div class="stat-icon" style="background: var(--admin-success-light); color: var(--admin-success);">✓</div>
+              </div>
+              <div class="stat-value" id="sheets-stat-synced" style="color: var(--admin-success);">0</div>
+              <div class="stat-meta"><span>Confirmed in Sheets</span></div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Pending</span>
+                <div class="stat-icon" style="background: var(--admin-warning-light); color: var(--admin-warning);">⏳</div>
+              </div>
+              <div class="stat-value" id="sheets-stat-pending" style="color: var(--admin-warning);">0</div>
+              <div class="stat-meta"><span id="sheets-stat-processing">0 processing</span></div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Failed</span>
+                <div class="stat-icon" style="background: var(--admin-danger-light); color: var(--admin-danger);">✕</div>
+              </div>
+              <div class="stat-value" id="sheets-stat-failed" style="color: var(--admin-danger);">0</div>
+              <div class="stat-meta"><span id="sheets-stat-awaiting-retry">0 awaiting retry</span></div>
+            </div>
+          </div>
+
+          <!-- Actions Toolbar -->
+          <div class="sync-actions-toolbar">
+            <button id="trigger-sync-btn" class="btn btn-primary btn-sm" onclick="triggerProcessQueue()">
+              ⚡ Process Queue Now
+            </button>
+            <button id="retry-failed-btn" class="btn btn-secondary btn-sm" onclick="retryFailedRecords()">
+              🔄 Retry Failed Records
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="loadGoogleSheetsTab()">
+              ↻ Refresh Status
+            </button>
+          </div>
+
+          <!-- Advanced Actions Collapsible -->
+          <details class="disclosure-box">
+            <summary>⚙️ Advanced Actions (Bulk Synchronization)</summary>
+            <div class="disclosure-content">
+              <p style="font-size: 0.825rem; color: var(--admin-text-secondary); margin-bottom: 0.75rem;">
+                Bulk synchronization will re-queue all existing registrations, verified attendees, and attendance records from the Biruh Enat database into Google Sheets. Use with care during high traffic periods.
+              </p>
+              <button id="bulk-sync-btn" class="btn btn-secondary btn-sm" onclick="triggerBulkSync()">
+                📦 Bulk Sync All Existing DB Records
+              </button>
+            </div>
+          </details>
+
+          <!-- Compact Documentation & Worksheet Schemas Collapsible -->
+          <details class="disclosure-box">
+            <summary>📖 View Google Sheets Tabs &amp; Column Schemas</summary>
+            <div class="disclosure-content">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-size: 0.8rem;">
+                <div style="background: var(--admin-card-inner); padding: 0.75rem; border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+                  <strong style="color: var(--admin-text-primary);">1. All Attendees</strong>
+                  <p style="color: var(--admin-text-muted); font-size: 0.75rem; margin-top: 0.2rem;">Consolidated attendee roster with verification and check-in summary.</p>
+                </div>
+                <div style="background: var(--admin-card-inner); padding: 0.75rem; border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+                  <strong style="color: var(--admin-text-primary);">2. Individual Registrations</strong>
+                  <p style="color: var(--admin-text-muted); font-size: 0.75rem; margin-top: 0.2rem;">Individual applicant profiles, track choices, and verification statuses.</p>
+                </div>
+                <div style="background: var(--admin-card-inner); padding: 0.75rem; border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+                  <strong style="color: var(--admin-text-primary);">3. Team Registrations</strong>
+                  <p style="color: var(--admin-text-muted); font-size: 0.75rem; margin-top: 0.2rem;">Team rosters (3–5 members per team), leader attribution, and roles.</p>
+                </div>
+                <div style="background: var(--admin-card-inner); padding: 0.75rem; border-radius: var(--admin-radius-sm); border: 1px solid var(--admin-border);">
+                  <strong style="color: var(--admin-text-primary);">4. Attendance Records</strong>
+                  <p style="color: var(--admin-text-muted); font-size: 0.75rem; margin-top: 0.2rem;">Physical event check-ins by session, scan timestamps, and verifier staff.</p>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- Synchronization Queue Table -->
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20v-6M6 20V10M18 20V4"></path>
+                </svg>
+                <span>Synchronization Outbox Queue</span>
+              </h2>
+            </div>
+            <div class="panel-body">
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Created</th>
+                      <th>Type</th>
+                      <th>Entity ID</th>
+                      <th>Target Sheet</th>
+                      <th>Status</th>
+                      <th>Retries</th>
+                      <th>Last Attempt</th>
+                      <th>Error Details</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sheets-queue-table-body">
+                    <tr>
+                      <td colspan="8" style="text-align: center; padding: 2rem; color: var(--admin-text-muted);">
+                        Loading synchronization queue...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =======================================================================
+             TAB 6: AUDIT LOGS
+             ======================================================================= -->
+        <div id="tab-audit" class="tab-pane">
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  <path d="m9 12 2 2 4-4"></path>
+                </svg>
+                <span>Security Audit Trail &amp; Activity Logs</span>
+              </h2>
+              <span class="badge badge-neutral" id="audit-count-badge">System Logs</span>
+            </div>
+
+            <div class="panel-body">
+              <!-- Audit Filter Toolbar -->
+              <div class="audit-toolbar">
+                <div class="search-input-wrap">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <input type="text" id="audit-search-input" placeholder="Search logs by admin, action, target, details...">
+                </div>
+
+                <select id="audit-action-filter" class="filter-select" style="min-width: 180px;">
+                  <option value="">All Action Types</option>
+                  <option value="LOGIN_SUCCESS">LOGIN_SUCCESS</option>
+                  <option value="CHECKIN_SUCCESS">CHECKIN_SUCCESS</option>
+                  <option value="CHECKIN_MANUAL">CHECKIN_MANUAL</option>
+                  <option value="TICKET_CREATED">TICKET_CREATED</option>
+                  <option value="TICKET_REVOKED">TICKET_REVOKED</option>
+                  <option value="EMAIL_VERIFICATION_RESENT">EMAIL_VERIFICATION_RESENT</option>
+                  <option value="TICKET_RESENT">TICKET_RESENT</option>
+                  <option value="SESSION_CREATED">SESSION_CREATED</option>
+                  <option value="SESSION_UPDATED">SESSION_UPDATED</option>
+                  <option value="SESSION_ACTIVATED">SESSION_ACTIVATED</option>
+                  <option value="GOOGLE_SHEETS_SYNC">GOOGLE_SHEETS_SYNC</option>
+                  <option value="GOOGLE_SHEETS_BULK_SYNC">GOOGLE_SHEETS_BULK_SYNC</option>
+                  <option value="ATTENDEES_EXPORTED">ATTENDEES_EXPORTED</option>
+                  <option value="ATTENDANCE_EXPORTED">ATTENDANCE_EXPORTED</option>
+                </select>
+
+                <button type="button" id="audit-clear-btn" class="btn btn-secondary btn-sm" title="Clear all filters">Clear Filters</button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Administrator</th>
+                      <th>Action</th>
+                      <th>Target</th>
+                      <th>Details</th>
+                      <th>IP Address</th>
+                    </tr>
+                  </thead>
+                  <tbody id="audit-table-body">
+                    <tr>
+                      <td colspan="6" style="text-align: center; padding: 2rem; color: var(--admin-text-muted);">
+                        Loading audit trail...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Audit Pagination Controls -->
+              <div class="audit-pagination">
+                <div style="font-size: 0.8rem; color: var(--admin-text-muted);">
+                  Showing page <strong id="audit-current-page" style="color: var(--admin-text-primary);">1</strong> of <strong id="audit-total-pages" style="color: var(--admin-text-primary);">1</strong> (<span id="audit-total-records">0</span> total entries)
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <select id="audit-limit-select" class="filter-select" style="width: auto; padding: 0.3rem 0.5rem; font-size: 0.8rem;">
+                    <option value="10">10 per page</option>
+                    <option value="20" selected>20 per page</option>
+                    <option value="50">50 per page</option>
+                    <option value="100">100 per page</option>
+                  </select>
+                  <button type="button" id="audit-prev-btn" class="btn btn-secondary btn-sm">&larr; Previous</button>
+                  <button type="button" id="audit-next-btn" class="btn btn-secondary btn-sm">Next &rarr;</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODALS & SLIDE-OVER DRAWERS
+       ========================================================================= -->
+
+  <!-- Slide-Over Participant Profile Drawer Modal -->
+  <div id="attendee-modal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="panel-title">Participant Profile &amp; Ticket Pass</h3>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeAttendeeModal()" aria-label="Close drawer">✕</button>
+      </div>
+      <div class="modal-body" id="attendee-modal-body">
+        <p style="color: var(--admin-text-muted);">Loading details...</p>
+      </div>
+      <div class="modal-footer" id="attendee-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeAttendeeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Revocation Modal -->
+  <div id="revoke-modal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="panel-title" style="color: var(--admin-danger);">⚠️ Revoke Participant Ticket</h3>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeRevokeModal()" aria-label="Close revocation modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.875rem; color: var(--admin-text-primary); margin-bottom: 1rem; line-height: 1.4;">
+          Revoking this ticket will immediately bar entry at all check-in desks. This action is permanently recorded in the security audit trail.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="revoke-reason-input">Revocation Reason <span style="color: var(--admin-danger);">*</span></label>
+          <input 
+            type="text" 
+            id="revoke-reason-input" 
+            class="form-control" 
+            placeholder="e.g. Participant withdrew / Safety violation / Duplicate registration"
+            required
+          >
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeRevokeModal()">Cancel</button>
+        <button type="button" class="btn btn-outline-danger" id="confirm-revoke-btn">Confirm Revocation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Session Modal -->
+  <div id="create-session-modal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="panel-title">Add Event Session</h3>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeCreateSessionModal()" aria-label="Close session modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="create-session-form">
+          <div class="form-group">
+            <label class="form-label" for="session-code-input">Session Code <span style="color: var(--admin-danger);">*</span></label>
+            <input type="text" id="session-code-input" class="form-control" placeholder="e.g. DAY-1, DAY-2, SPRINT-AM" required style="text-transform: uppercase;">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="session-name-input">Session Name <span style="color: var(--admin-danger);">*</span></label>
+            <input type="text" id="session-name-input" class="form-control" placeholder="e.g. Day 1: Innovation Sprint &amp; Opening" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="session-date-input">Event Date <span style="color: var(--admin-danger);">*</span></label>
+            <input type="date" id="session-date-input" class="form-control" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label class="form-label" for="session-start-input">Start Time</label>
+              <input type="text" id="session-start-input" class="form-control" placeholder="08:00 AM" value="08:00 AM">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="session-end-input">End Time</label>
+              <input type="text" id="session-end-input" class="form-control" placeholder="06:00 PM" value="06:00 PM">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="session-venue-input">Venue</label>
+            <input type="text" id="session-venue-input" class="form-control" value="Capstone ALX Tech Hub, Lideta">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeCreateSessionModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" id="save-session-btn">Save Session</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Event Session Modal -->
+  <div id="edit-session-modal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="panel-title">Edit Event Session</h3>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeEditSessionModal()" aria-label="Close edit session modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-session-form" onsubmit="return false;">
+          <input type="hidden" id="edit-session-id-input">
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label">Session Code</label>
+            <input type="text" id="edit-session-code-display" class="form-control" readonly disabled style="opacity: 0.7; font-family: monospace;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" for="edit-session-name-input">Session Name <span style="color: var(--admin-danger);">*</span></label>
+            <input type="text" id="edit-session-name-input" class="form-control" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" for="edit-session-date-input">Event Date <span style="color: var(--admin-danger);">*</span></label>
+            <input type="date" id="edit-session-date-input" class="form-control" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" for="edit-session-start-input">Start Time</label>
+              <input type="text" id="edit-session-start-input" class="form-control" placeholder="08:00 AM">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-session-end-input">End Time</label>
+              <input type="text" id="edit-session-end-input" class="form-control" placeholder="06:00 PM">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-session-venue-input">Venue Location</label>
+            <input type="text" id="edit-session-venue-input" class="form-control" placeholder="e.g. Capstone ALX Tech Hub">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeEditSessionModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" id="save-edit-session-btn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session Attendance Drilldown Modal -->
+  <div id="session-attendance-modal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 960px; width: 95%;">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h3 class="panel-title" id="session-att-modal-title">Session Attendance Roster</h3>
+          <p id="session-att-modal-subtitle" style="font-size: 0.8rem; color: var(--admin-text-secondary); margin-top: 0.25rem;">
+            Inspecting physical check-in audit records
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <span class="badge badge-teal" id="session-att-modal-count">0 Scanned</span>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="closeSessionAttendanceModal()" aria-label="Close attendance modal">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" style="padding: 1rem 1.25rem;">
+        <!-- Search filter toolbar for drilldown -->
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+          <div class="search-input-wrap" style="flex: 1 1 240px; display: flex; align-items: center; gap: 0.5rem; background: var(--admin-card-inner); border: 1px solid var(--admin-border); border-radius: var(--admin-radius-sm); padding: 0.4rem 0.75rem;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="session-att-search-input" placeholder="Search attending participants by name, email, or ticket..." style="width: 100%; border: none; background: transparent; color: var(--admin-text-primary); font-size: 0.85rem; outline: none;">
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="session-att-export-btn">
+            Download Session CSV
+          </button>
+        </div>
+
+        <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Participant</th>
+                <th>Registration Ref</th>
+                <th>Ticket Code</th>
+                <th>Check-In Method</th>
+                <th>Check-In Time</th>
+                <th>Verified By</th>
+              </tr>
+            </thead>
+            <tbody id="session-att-table-body">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem; color: var(--admin-text-muted);">
+                  Loading attendance records...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeSessionAttendanceModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseConfig.js"></script>
+  <script src="/admin/js/admin.js" onerror="this.onerror=null;this.src='./js/admin.js'"></script>
+</body>
+</html>

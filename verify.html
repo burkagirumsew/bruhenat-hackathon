@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Verification — BRUH-Enat Hackathon 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .verify-page-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2.5rem 1rem;
+      background: var(--bg-dark, #0d1117);
+    }
+    .verify-card {
+      width: 100%;
+      max-width: 580px;
+      background: var(--card-bg, #161b22);
+      border: 1px solid var(--border-color, #30363d);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .verify-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #ea580c, #f97316, #f59e0b);
+    }
+    .status-icon-box {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      margin: 0 auto 1.5rem auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon-loading {
+      background: rgba(249, 115, 22, 0.15);
+      color: #f97316;
+    }
+    .icon-success {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+      border: 2px solid #22c55e;
+    }
+    .icon-error {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 2px solid #ef4444;
+    }
+    .verify-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary, #ffffff);
+    }
+    .verify-desc {
+      font-size: 0.95rem;
+      color: var(--text-secondary, #8b949e);
+      line-height: 1.5;
+      margin-bottom: 1.75rem;
+    }
+    .ticket-pass {
+      background: #0d1117;
+      border: 2px solid #f97316;
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+    .ticket-badge-pill {
+      display: inline-block;
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border: 1px solid #22c55e;
+      padding: 0.25rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.75rem;
+    }
+    .qr-frame {
+      background: #ffffff;
+      padding: 0.85rem;
+      display: inline-block;
+      border-radius: 10px;
+      margin: 0.75rem 0;
+    }
+    .qr-frame img {
+      display: block;
+      width: 180px;
+      height: 180px;
+    }
+    .ticket-code-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f97316;
+      letter-spacing: 1.5px;
+      margin-top: 0.5rem;
+    }
+    .details-table-view {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      text-align: left;
+    }
+    .details-table-view td {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+      border-top: 1px solid #21262d;
+    }
+    .details-table-view td.label {
+      color: #8b949e;
+      width: 40%;
+    }
+    .details-table-view td.val {
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .btn-action-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+    .resend-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-top: 1.5rem;
+      text-align: left;
+    }
+    .spin {
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="verify-page-wrapper">
+    <div class="verify-card" id="verify-card">
+      
+      <!-- STATE 1: LOADING -->
+      <div id="state-loading">
+        <div class="status-icon-box icon-loading">
+          <svg class="spin" viewBox="0 0 24 24" style="width:36px;height:36px;" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+            <path d="M12 2a10 10 0 0 1 10 10"/>
+          </svg>
+        </div>
+        <h2 class="verify-title">Checking Verification Link...</h2>
+        <p class="verify-desc">Please hold on while we validate your application link.</p>
+      </div>
+
+      <!-- STATE 1.5: CONFIRM_PROMPT (Prefetch Protection against email scanners) -->
+      <div id="state-prompt" style="display: none;">
+        <div class="status-icon-box" style="background: rgba(249, 115, 22, 0.15); color: #f97316; border: 2px solid #f97316;">
+          <svg viewBox="0 0 24 24" style="width:36px;height:36px;" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <h2 class="verify-title">Confirm Email & Activate Pass</h2>
+        <p class="verify-desc">Hello <strong id="prompt-name" style="color:#ffffff;">Attendee</strong>! Click the button below to confirm your email address and generate your official BRUH-Enat Hackathon Entry Pass.</p>
+
+        <div style="background:rgba(255,255,255,0.03);border:1px solid #30363d;border-radius:12px;padding:1rem 1.25rem;text-align:left;margin-bottom:1.5rem;">
+          <p style="margin:0.25rem 0;font-size:0.85rem;"><span style="color:#8b949e;">Reference:</span> <strong id="prompt-ref" style="color:#f97316;"></strong></p>
+          <p style="margin:0.25rem 0;font-size:0.85rem;"><span style="color:#8b949e;">Track:</span> <strong id="prompt-track" style="color:#ffffff;"></strong></p>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="btn-activate-pass" style="width:100%;font-size:1.05rem;padding:0.85rem 1.5rem;">
+          Verify Email & Activate Ticket Pass &rarr;
+        </button>
+      </div>
+
+      <!-- STATE 2: SUCCESS -->
+      <div id="state-success" style="display: none;">
+        <div class="status-icon-box icon-success">
+          <svg viewBox="0 0 24 24" style="width:36px;height:36px;" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h2 class="verify-title" id="success-headline">Email Verified!</h2>
+        <p class="verify-desc" id="success-message">Your spot is officially confirmed. Present the QR ticket below when checking in on December 5.</p>
+
+        <!-- Ticket Card -->
+        <div class="ticket-pass" id="ticket-pass-area">
+          <div class="ticket-badge-pill">Official Entry Pass • Active</div>
+          <h3 id="ticket-name" style="color:#ffffff;font-size:1.25rem;margin:0 0 0.25rem 0;">Attendee Name</h3>
+          <div id="ticket-meta" style="color:#8b949e;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;">Pathway</div>
+
+          <div class="qr-frame">
+            <img id="ticket-qr-img" src="" alt="BRUH-Enat QR Ticket">
+          </div>
+
+          <div class="ticket-code-display" id="ticket-code-display">BE26-XXXX-XXXX</div>
+
+          <table class="details-table-view">
+            <tr>
+              <td class="label">Reference Code</td>
+              <td class="val" id="ticket-ref">BE-2026-IND-0000</td>
+            </tr>
+            <tr>
+              <td class="label">Track</td>
+              <td class="val" id="ticket-track">Safe Reporting & Protection</td>
+            </tr>
+            <tr>
+              <td class="label">Venue</td>
+              <td class="val">Capstone ALX Tech Hub, Lideta, Addis Ababa</td>
+            </tr>
+            <tr>
+              <td class="label">Sprint Date</td>
+              <td class="val">Saturday, Dec 5, 2026 @ 08:30 AM EAT</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="btn-action-group">
+          <button type="button" class="btn btn-primary" id="btn-download-pass">
+            <svg class="icon-svg" viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Download Digital Pass
+          </button>
+          <button type="button" class="btn btn-secondary" id="btn-print-pass">
+            <svg class="icon-svg" viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:6px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Pass
+          </button>
+          <a href="index.html" class="btn btn-secondary">Return to Website</a>
+        </div>
+      </div>
+
+      <!-- STATE 3: ERROR / EXPIRED -->
+      <div id="state-error" style="display: none;">
+        <div class="status-icon-box icon-error">
+          <svg viewBox="0 0 24 24" style="width:36px;height:36px;" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 class="verify-title" id="error-title">Verification Issue</h2>
+        <p class="verify-desc" id="error-message">This verification link is invalid, expired, or has already been used.</p>
+
+        <!-- Resend Form -->
+        <div class="resend-box">
+          <h4 style="margin:0 0 0.5rem 0;color:#ffffff;font-size:0.95rem;">Request a New Verification Link</h4>
+          <p style="font-size:0.82rem;color:#8b949e;margin:0 0 0.85rem 0;">Enter the email address you applied with, and we'll dispatch a fresh verification link to your inbox.</p>
+          
+          <div style="display:flex;gap:0.5rem;">
+            <input type="email" id="resend-email-input" class="form-input" placeholder="applicant@example.com" style="flex:1;">
+            <button type="button" class="btn btn-primary" id="btn-submit-resend" style="white-space:nowrap;padding:0.6rem 1.25rem;">
+              Resend Link
+            </button>
+          </div>
+          <div id="resend-feedback" style="margin-top:0.6rem;font-size:0.8rem;display:none;"></div>
+        </div>
+
+        <div style="margin-top:1.5rem;">
+          <a href="index.html" class="btn btn-secondary">Return to Home</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseConfig.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+
+      const stateLoading = document.getElementById('state-loading');
+      const statePrompt = document.getElementById('state-prompt');
+      const stateSuccess = document.getElementById('state-success');
+      const stateError = document.getElementById('state-error');
+
+      if (!token) {
+        stateLoading.style.display = 'none';
+        stateError.style.display = 'block';
+        document.getElementById('error-title').textContent = 'Missing Verification Token';
+        document.getElementById('error-message').textContent = 'No verification token was provided in the link. Please check your verification email or request a new link below.';
+        setupResend();
+        return;
+      }
+
+      try {
+        // Step 1: Pre-validate token via GET (does NOT consume the token)
+        const response = await fetch(`/api/verify?token=${encodeURIComponent(token)}`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        const data = await response.json();
+        stateLoading.style.display = 'none';
+
+        if (response.ok && data.success) {
+          // Token is valid! Show explicit human confirmation prompt (Prefetch protection)
+          statePrompt.style.display = 'block';
+          document.getElementById('prompt-name').textContent = data.data?.attendeeName || 'Innovator';
+          document.getElementById('prompt-ref').textContent = data.data?.referenceCode || '';
+          document.getElementById('prompt-track').textContent = data.data?.preferredTrack || 'Open Track';
+
+          // When user explicitly clicks button, trigger POST to consume token and activate ticket
+          document.getElementById('btn-activate-pass').onclick = async () => {
+            const btn = document.getElementById('btn-activate-pass');
+            btn.disabled = true;
+            btn.textContent = 'Activating Entry Pass...';
+
+            try {
+              const postRes = await fetch('/api/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+              });
+              const postData = await postRes.json();
+              statePrompt.style.display = 'none';
+
+              if (postRes.ok && postData.success) {
+                showSuccess(postData.data, false);
+              } else if (postData.data && postData.data.ticket) {
+                showSuccess(postData.data, true);
+              } else {
+                showError(postData.error || 'Verification failed.');
+              }
+            } catch (postErr) {
+              statePrompt.style.display = 'none';
+              showError('Network error while activating pass. Please try again.');
+            }
+          };
+        } else if (data.data && data.data.ticket) {
+          // Already verified
+          showSuccess(data.data, true);
+        } else {
+          showError(data.error || 'The verification link is invalid or has expired.');
+        }
+      } catch (err) {
+        stateLoading.style.display = 'none';
+        showError('Unable to communicate with the verification server. Please check your connection.');
+      }
+    });
+
+    function showSuccess(data, isAlreadyVerified) {
+      const stateSuccess = document.getElementById('state-success');
+      stateSuccess.style.display = 'block';
+
+      if (isAlreadyVerified) {
+        document.getElementById('success-headline').textContent = 'Email Already Verified!';
+        document.getElementById('success-message').textContent = 'Your application has previously been verified. Your official entry pass is active below.';
+      }
+
+      const attendee = data.attendee || {};
+      const ticket = data.ticket || {};
+
+      document.getElementById('ticket-name').textContent = attendee.fullName || 'Verified Attendee';
+      document.getElementById('ticket-meta').textContent = attendee.teamName 
+        ? `Team: ${attendee.teamName}` 
+        : (attendee.pathway || 'Individual Participant');
+
+      if (ticket.qrData) {
+        document.getElementById('ticket-qr-img').src = ticket.qrData;
+      }
+      if (ticket.ticketCode) {
+        document.getElementById('ticket-code-display').textContent = ticket.ticketCode;
+      }
+      if (attendee.referenceCode) {
+        document.getElementById('ticket-ref').textContent = attendee.referenceCode;
+      }
+      if (attendee.preferredTrack) {
+        document.getElementById('ticket-track').textContent = attendee.preferredTrack;
+      }
+
+      // Download Pass Button
+      document.getElementById('btn-download-pass').onclick = () => {
+        const text = `
+============================================================
+BRUH-ENAT WOMEN'S TECH INNOVATION HACKATHON 2026
+OFFICIAL DIGITAL ENTRY TICKET
+============================================================
+Ticket Code    : ${ticket.ticketCode || 'N/A'}
+Reference Code : ${attendee.referenceCode || 'N/A'}
+Attendee Name  : ${attendee.fullName || 'N/A'}
+Pathway        : ${attendee.teamName ? 'Team: ' + attendee.teamName : 'Individual'}
+Track          : ${attendee.preferredTrack || 'N/A'}
+Status         : CONFIRMED & ACTIVE
+
+EVENT DETAILS:
+Sprint Date : Saturday, December 5, 2026
+Check-in    : 08:30 AM – 09:30 AM EAT
+Venue       : Capstone ALX Tech Hub, Lideta, Addis Ababa, Ethiopia
+Maps Link   : https://maps.app.goo.gl/XLH2PN6vTPyP2kP58
+
+IMPORTANT REMINDERS:
+1. Present this code at the registration desk upon arrival.
+2. Please bring a charged laptop, charger, and valid ID.
+3. Survivor Safety Pledge: Synthetic/fictional data only.
+============================================================`.trim();
+
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Bruh-Enat-Ticket-${ticket.ticketCode || 'Pass'}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      // Print Button
+      document.getElementById('btn-print-pass').onclick = () => {
+        window.print();
+      };
+    }
+
+    function showError(message) {
+      const stateError = document.getElementById('state-error');
+      stateError.style.display = 'block';
+      document.getElementById('error-title').textContent = 'Verification Issue';
+      document.getElementById('error-message').textContent = message;
+      setupResend();
+    }
+
+    function setupResend() {
+      const btn = document.getElementById('btn-submit-resend');
+      const input = document.getElementById('resend-email-input');
+      const feedback = document.getElementById('resend-feedback');
+
+      if (!btn || !input) return;
+
+      btn.onclick = async () => {
+        const email = input.value.trim();
+        if (!email) {
+          feedback.style.display = 'block';
+          feedback.style.color = '#ef4444';
+          feedback.textContent = 'Please enter a valid email address.';
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+
+        try {
+          const res = await fetch('/api/verify/resend', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          const data = await res.json();
+
+          feedback.style.display = 'block';
+          if (res.ok && data.success) {
+            feedback.style.color = '#34d399';
+            feedback.textContent = data.message || 'Verification link sent! Please check your inbox.';
+          } else {
+            feedback.style.color = '#ef4444';
+            feedback.textContent = data.error || 'Could not dispatch verification email.';
+          }
+        } catch (e) {
+          feedback.style.display = 'block';
+          feedback.style.color = '#ef4444';
+          feedback.textContent = 'Failed to connect to server. Please try again.';
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Resend Link';
+        }
+      };
+    }
+  </script>
+</body>
+</html>

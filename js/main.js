@@ -72,9 +72,7 @@ function initNavigation() {
   const navLinks = document.querySelectorAll('.nav-link');
 
   let lastScrollY = window.scrollY;
-  const scrollDelta = 6;
-
-  // Smart Header: hide when scrolling down, pop up when scrolled back
+  // Sticky Header: stays visible at the top, enhances background/shadow when scrolled
   window.addEventListener('scroll', () => {
     const currentScrollY = window.scrollY;
 
@@ -82,22 +80,8 @@ function initNavigation() {
       header?.classList.add('scrolled');
     } else {
       header?.classList.remove('scrolled');
-      header?.classList.remove('header-hidden');
     }
 
-    if (currentScrollY > 150) {
-      if (currentScrollY > lastScrollY + scrollDelta) {
-        // Scrolling down -> hide navbar
-        header?.classList.add('header-hidden');
-      } else if (currentScrollY < lastScrollY - scrollDelta) {
-        // Scrolled back up -> POP UP NAVBAR!
-        header?.classList.remove('header-hidden');
-      }
-    } else {
-      header?.classList.remove('header-hidden');
-    }
-
-    lastScrollY = currentScrollY;
     updateActiveNavLink();
   }, { passive: true });
 

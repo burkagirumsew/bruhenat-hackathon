@@ -26,8 +26,8 @@
   }
 
   .partners-logos-row {
-    flex-wrap: wrap;
-    justify-content: center;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
   }
 
   .partners-logos-showcase {
@@ -348,19 +348,27 @@
   }
 
   .partners-logos-row {
-    gap: 0.75rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
   }
 
-  .hero-partners-banner .partner-emblem-badge {
-    padding: 0.45rem 0.85rem;
-    gap: 0.55rem;
-    font-size: 0.88rem;
+  .partner-emblem-badge {
+    padding: 0.85rem 0.65rem 0.75rem;
+  }
+
+  .partner-logo-box {
+    height: 56px;
+    padding: 4px 8px;
   }
 
   .hero-partner-logo {
-    height: 32px;
-    max-width: 85px;
-    padding: 3px 6px;
+    max-height: 44px;
+  }
+
+  .partner-name {
+    font-size: 0.8rem;
+    min-height: 2.2em;
+    margin-top: 0.5rem;
   }
 
   .blueprint-squad-row {
@@ -418,6 +426,10 @@
   }
 
   /* Extra Small Phone Fitting (<= 380px, e.g. iPhone SE / Galaxy Mini) */
+  .partners-logos-row {
+    grid-template-columns: 1fr;
+  }
+
   .container {
     padding-left: 0.85rem !important;
     padding-right: 0.85rem !important;

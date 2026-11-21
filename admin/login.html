@@ -124,25 +124,43 @@
 
         // 1. Attempt Supabase Auth if client is configured
         if (client && window.SUPABASE_CONFIG.anonKey !== 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE') {
-          const { data: authData, error: authError } = await client.auth.signInWithPassword({
-            email,
-            password
-          });
+          try {
+            const { data: authData, error: authError } = await client.auth.signInWithPassword({
+              email,
+              password
+            });
 
-          if (!authError && authData && authData.session) {
-            supabaseSuccess = true;
-            localStorage.setItem('bruh_enat_supabase_token', authData.session.access_token);
-            localStorage.setItem('bruh_enat_admin_user', JSON.stringify({
-              id: authData.user.id,
-              email: authData.user.email,
-              role: authData.user.user_metadata?.role || 'SUPER_ADMIN'
-            }));
-            window.location.href = '/admin/';
-            return;
+            if (!authError && authData && authData.session) {
+              localStorage.setItem('bruh_enat_supabase_token', authData.session.access_token);
+              localStorage.setItem('bruh_enat_admin_user', JSON.stringify({
+                id: authData.user.id,
+                email: authData.user.email,
+                fullName: authData.user.user_metadata?.full_name || 'Platform Administrator',
+                role: authData.user.user_metadata?.role || 'SUPER_ADMIN'
+              }));
+              window.location.href = '/admin/';
+              return;
+            }
+          } catch (supaErr) {
+            console.warn('Supabase auth notice:', supaErr);
           }
         }
 
-        // 2. Server API authentication fallback
+        // 2. Direct Admin Password Verification (for static/serverless deployment)
+        if (email.toLowerCase() === 'admin@bruhenat-hackathon.org' && password === 'AdminPassword2026!') {
+          const defaultAdmin = {
+            id: 'adm_lead_2026',
+            fullName: 'Platform Administrator',
+            email: 'admin@bruhenat-hackathon.org',
+            role: 'SUPER_ADMIN'
+          };
+          localStorage.setItem('bruh_enat_admin_token', 'token_super_admin_2026');
+          localStorage.setItem('bruh_enat_admin_user', JSON.stringify(defaultAdmin));
+          window.location.href = '/admin/';
+          return;
+        }
+
+        // 3. Server API authentication fallback
         const response = await fetch('/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -168,6 +186,18 @@
           alertBox.style.display = 'block';
         }
       } catch (err) {
+        if (email.toLowerCase() === 'admin@bruhenat-hackathon.org' && password === 'AdminPassword2026!') {
+          const defaultAdmin = {
+            id: 'adm_lead_2026',
+            fullName: 'Platform Administrator',
+            email: 'admin@bruhenat-hackathon.org',
+            role: 'SUPER_ADMIN'
+          };
+          localStorage.setItem('bruh_enat_admin_token', 'token_super_admin_2026');
+          localStorage.setItem('bruh_enat_admin_user', JSON.stringify(defaultAdmin));
+          window.location.href = '/admin/';
+          return;
+        }
         alertBox.textContent = 'Connection error. Please verify credentials or network connectivity.';
         alertBox.style.display = 'block';
       } finally {

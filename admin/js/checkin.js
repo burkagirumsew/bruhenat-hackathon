@@ -128,28 +128,46 @@ function showToast(message, type = 'info', duration = 3500) {
   }
 }
 
-// Authentication & Profile Initialization
+// Authentication & Profile Initialization (Strict Session Enforcement)
 async function initAuth() {
+  const sessionRaw = localStorage.getItem('bruh_enat_admin_session');
+  if (sessionRaw) {
+    try {
+      const session = JSON.parse(sessionRaw);
+      if (session && session.expiresAt && Date.now() < session.expiresAt) {
+        document.getElementById('user-name').textContent = session.fullName || 'Admin Staff';
+        const roleElem = document.getElementById('user-role');
+        roleElem.textContent = (session.role || 'STAFF').replace('_', ' ');
+        roleElem.className = `role-pill role-${session.role || 'STAFF'}`;
+        if (session.role === 'SUPER_ADMIN' || session.role === 'ADMIN') {
+          document.getElementById('dashboard-link').style.display = 'inline-flex';
+        }
+        return;
+      }
+    } catch (e) {}
+  }
+
   try {
     const res = await fetch('/api/admin/me', { credentials: 'include' });
-    if (!res.ok) {
-      window.location.href = '/admin/login';
-      return;
-    }
-    const data = await res.json();
-    if (data.success && data.admin) {
-      document.getElementById('user-name').textContent = data.admin.fullName;
-      const roleElem = document.getElementById('user-role');
-      roleElem.textContent = data.admin.role.replace('_', ' ');
-      roleElem.className = `role-pill role-${data.admin.role}`;
-
-      if (data.admin.role === 'SUPER_ADMIN' || data.admin.role === 'ADMIN') {
-        document.getElementById('dashboard-link').style.display = 'inline-flex';
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.admin) {
+        document.getElementById('user-name').textContent = data.admin.fullName;
+        const roleElem = document.getElementById('user-role');
+        roleElem.textContent = data.admin.role.replace('_', ' ');
+        roleElem.className = `role-pill role-${data.admin.role}`;
+        if (data.admin.role === 'SUPER_ADMIN' || data.admin.role === 'ADMIN') {
+          document.getElementById('dashboard-link').style.display = 'inline-flex';
+        }
+        return;
       }
     }
-  } catch (err) {
-    window.location.href = '/admin/login';
-  }
+  } catch (err) {}
+
+  localStorage.removeItem('bruh_enat_admin_session');
+  localStorage.removeItem('bruh_enat_admin_token');
+  localStorage.removeItem('bruh_enat_admin_user');
+  window.location.href = '/admin/login';
 }
 
 // Active Session Initialization

@@ -89,9 +89,9 @@
 }
 
 /* --------------------------------------------------------------------------
-   TABLETS & MEDIUM SCREENS (max-width: 860px)
+   TABLETS & MEDIUM SCREENS (max-width: 1024px)
    -------------------------------------------------------------------------- */
-@media (max-width: 860px) {
+@media (max-width: 1024px) {
   :root {
     --container-padding: 1.25rem;
   }
@@ -130,6 +130,10 @@
 
   [data-theme="light"] .nav-menu {
     background: rgba(250, 248, 245, 0.98);
+  }
+
+  .nav-drawer-extra {
+    display: block;
   }
 
   .mobile-theme-toggle-wrap {

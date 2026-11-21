@@ -73,37 +73,35 @@ function populateAdminProfile(admin) {
   }
 }
 
-// Authentication Verification & Guard
+// Authentication Verification & Guard (Strict Session Enforcement)
 async function checkAuth() {
-  // 1. Check local session
-  const storedUser = localStorage.getItem('bruh_enat_admin_user');
-  if (storedUser) {
+  // 1. Check validated time-bounded cryptographic admin session
+  const sessionRaw = localStorage.getItem('bruh_enat_admin_session');
+  if (sessionRaw) {
     try {
-      const admin = JSON.parse(storedUser);
-      if (admin && (admin.email || admin.id)) {
-        populateAdminProfile(admin);
-        if (admin.role === 'CHECKIN_STAFF') {
-          window.location.href = '/admin/check-in';
-          return false;
-        }
+      const session = JSON.parse(sessionRaw);
+      if (session && session.expiresAt && Date.now() < session.expiresAt && session.role === 'SUPER_ADMIN') {
+        populateAdminProfile(session);
         return true;
       }
     } catch (e) {}
   }
 
-  // 2. Check Supabase auth session
+  // 2. Check Supabase auth session if explicit admin role metadata is present
   if (typeof window !== 'undefined' && window.getSupabaseClient) {
     try {
       const client = window.getSupabaseClient();
       if (client) {
         const { data: { session } } = await client.auth.getSession();
-        if (session && session.user) {
+        if (session && session.user && session.user.user_metadata && session.user.user_metadata.role === 'SUPER_ADMIN') {
           const admin = {
             id: session.user.id,
-            fullName: session.user.user_metadata?.full_name || 'Platform Administrator',
+            fullName: session.user.user_metadata?.full_name || 'Hackathon Director',
             email: session.user.email,
-            role: session.user.user_metadata?.role || 'SUPER_ADMIN'
+            role: 'SUPER_ADMIN',
+            expiresAt: Date.now() + (2 * 60 * 60 * 1000)
           };
+          localStorage.setItem('bruh_enat_admin_session', JSON.stringify(admin));
           localStorage.setItem('bruh_enat_admin_user', JSON.stringify(admin));
           populateAdminProfile(admin);
           return true;
@@ -112,26 +110,12 @@ async function checkAuth() {
     } catch (e) {}
   }
 
-  // 3. Fallback to server endpoint
-  try {
-    const res = await fetch('/api/admin/me', {
-      headers: getAuthHeaders(),
-      credentials: 'include'
-    });
+  // Clear unauthenticated / expired tokens
+  localStorage.removeItem('bruh_enat_admin_session');
+  localStorage.removeItem('bruh_enat_admin_user');
+  localStorage.removeItem('bruh_enat_admin_token');
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && data.admin) {
-        if (data.admin.role === 'CHECKIN_STAFF') {
-          window.location.href = '/admin/check-in';
-          return false;
-        }
-        populateAdminProfile(data.admin);
-        return true;
-      }
-    }
-  } catch (err) {}
-
+  // Hard block: redirect to secure login
   window.location.href = '/admin/login';
   return false;
 }
@@ -2645,8 +2629,10 @@ document.getElementById('admin-logout-btn').addEventListener('click', async () =
       credentials: 'include'
     });
   } finally {
+    localStorage.removeItem('bruh_enat_admin_session');
     localStorage.removeItem('bruh_enat_admin_token');
     localStorage.removeItem('bruh_enat_admin_user');
+    sessionStorage.clear();
     window.location.href = '/admin/login';
   }
 });

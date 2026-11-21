@@ -27,7 +27,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 74px;
+  height: 76px;
+  max-width: 1440px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 clamp(1rem, 2.5vw, 2.5rem);
 }
 
 /* Brand Wordmark */
@@ -36,6 +41,7 @@
   align-items: center;
   gap: 0.85rem;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .brand-logo-img {
@@ -97,32 +103,47 @@
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: 1.75rem;
+  gap: clamp(0.6rem, 1.3vw, 1.4rem);
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .nav-link {
-  font-size: 0.92rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 500;
   color: var(--text-secondary);
-  transition: color var(--transition-fast);
+  transition: all var(--transition-fast);
   position: relative;
-  padding: 0.35rem 0;
+  padding: 0.4rem 0.65rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
 }
 
 .nav-link:hover,
 .nav-link.active {
   color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .nav-link.active::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 0;
-  width: 100%;
+  left: 0.65rem;
+  right: 0.65rem;
   height: 2px;
   background: var(--gradient-brand);
+  border-radius: 2px;
+}
+
+.nav-drawer-extra {
+  display: none;
+}
+
+.hero-telegram-btn {
+  margin-bottom: 0 !important;
+}
   border-radius: var(--radius-full);
 }
 

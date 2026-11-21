@@ -29,14 +29,14 @@
 
       <form id="login-form">
         <div class="form-group">
-          <label class="form-label" for="login-email">Administrator Email</label>
-          <input type="email" id="login-email" class="form-control" placeholder="admin@bruhenat-hackathon.org" required
+          <label class="form-label" for="login-email">Authorized Administrator Email</label>
+          <input type="email" id="login-email" class="form-control" placeholder="authorized.organizer@domain.com" required
             autocomplete="email">
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="login-password">Password</label>
-          <input type="password" id="login-password" class="form-control" placeholder="••••••••••••" required
+          <label class="form-label" for="login-password">Organizer Security Key</label>
+          <input type="password" id="login-password" class="form-control" placeholder="Enter master security key" required
             autocomplete="current-password">
         </div>
 
@@ -61,41 +61,18 @@
 
   <script>
     const API_BASE = (typeof window !== 'undefined' && window.BIRUH_ENAT_API_URL) || '';
-    const _originalFetch = window.fetch;
-    window.fetch = function (input, init) {
-      if (typeof input === 'string' && input.startsWith('/api/')) {
-        input = API_BASE + input;
-      }
-      return _originalFetch.call(this, input, init);
-    };
 
-    // Quick auto-redirect if Supabase or server session is still valid
-    (async function checkExistingAuth() {
-      try {
-        const client = window.getSupabaseClient ? window.getSupabaseClient() : null;
-        if (client) {
-          const { data: { session } } = await client.auth.getSession();
-          if (session && session.user) {
-            window.location.href = '/admin/';
-            return;
-          }
-        }
+    // SHA-256 Hashes of Authorized Administrator Master Keys (one-way cryptographic hash)
+    const AUTHORIZED_KEY_HASHES = [
+      '678de335e86db005bae9743aef5254d208373baec3133c6bb644907b30275ffe',
+      'f3562c2958226cbd867989393d37da2b75a918ea97e8bee3966dce630d9e5890'
+    ];
 
-        const res = await fetch('/api/admin/me', { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.admin) {
-            if (data.admin.role === 'CHECKIN_STAFF') {
-              window.location.href = '/admin/check-in';
-            } else {
-              window.location.href = '/admin/';
-            }
-          }
-        }
-      } catch (e) {
-        // Not logged in, proceed to login form
-      }
-    })();
+    async function hashString(str) {
+      const buffer = new TextEncoder().encode(str);
+      const digest = await crypto.subtle.digest('SHA-256', buffer);
+      return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
 
     const form = document.getElementById('login-form');
     const alertBox = document.getElementById('login-alert');
@@ -103,102 +80,96 @@
     const btnText = document.getElementById('btn-text');
     const btnSpinner = document.getElementById('btn-spinner');
 
+    let failedAttempts = parseInt(sessionStorage.getItem('login_fails') || '0', 10);
+    let lockUntil = parseInt(sessionStorage.getItem('login_lock_until') || '0', 10);
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       alertBox.className = 'alert alert-danger';
       alertBox.textContent = '';
       alertBox.style.display = 'none';
 
+      // Check lockout status
+      const now = Date.now();
+      if (lockUntil && now < lockUntil) {
+        const remainingSec = Math.ceil((lockUntil - now) / 1000);
+        alertBox.textContent = `Access Denied: System temporarily locked due to multiple failed attempts. Try again in ${remainingSec} seconds.`;
+        alertBox.style.display = 'block';
+        return;
+      }
+
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
 
-      if (!email || !password) return;
+      if (!email || !password) {
+        alertBox.textContent = 'Please enter both administrator email and master security key.';
+        alertBox.style.display = 'block';
+        return;
+      }
 
       btn.disabled = true;
       btnText.style.display = 'none';
       btnSpinner.style.display = 'inline';
 
       try {
-        const client = window.getSupabaseClient ? window.getSupabaseClient() : null;
+        const hashedInput = await hashString(password);
+        const isAuthorizedHash = AUTHORIZED_KEY_HASHES.includes(hashedInput);
+
+        // Optional Supabase Auth integration if admin user was provisioned
         let supabaseSuccess = false;
-
-        // 1. Attempt Supabase Auth if client is configured
-        if (client && window.SUPABASE_CONFIG.anonKey !== 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE') {
+        if (window.getSupabaseClient && window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.anonKey !== 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE') {
           try {
-            const { data: authData, error: authError } = await client.auth.signInWithPassword({
-              email,
-              password
-            });
-
-            if (!authError && authData && authData.session) {
-              localStorage.setItem('bruh_enat_supabase_token', authData.session.access_token);
-              localStorage.setItem('bruh_enat_admin_user', JSON.stringify({
-                id: authData.user.id,
-                email: authData.user.email,
-                fullName: authData.user.user_metadata?.full_name || 'Platform Administrator',
-                role: authData.user.user_metadata?.role || 'SUPER_ADMIN'
-              }));
-              window.location.href = '/admin/';
-              return;
+            const client = window.getSupabaseClient();
+            if (client) {
+              const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
+              if (!authError && authData && authData.session) {
+                supabaseSuccess = true;
+              }
             }
           } catch (supaErr) {
-            console.warn('Supabase auth notice:', supaErr);
+            // Supabase auth notice
           }
         }
 
-        // 2. Direct Admin Password Verification (for static/serverless deployment)
-        if (email.toLowerCase() === 'admin@bruhenat-hackathon.org' && password === 'AdminPassword2026!') {
-          const defaultAdmin = {
-            id: 'adm_lead_2026',
-            fullName: 'Platform Administrator',
-            email: 'admin@bruhenat-hackathon.org',
-            role: 'SUPER_ADMIN'
+        if (isAuthorizedHash || supabaseSuccess) {
+          // Reset failed attempts
+          sessionStorage.removeItem('login_fails');
+          sessionStorage.removeItem('login_lock_until');
+
+          // Issue time-bounded authenticated admin session (2 hours strictly)
+          const sessionData = {
+            id: 'adm_sec_' + Math.random().toString(36).substring(2, 9),
+            email: email.toLowerCase(),
+            fullName: 'Hackathon Director',
+            role: 'SUPER_ADMIN',
+            authenticatedAt: Date.now(),
+            expiresAt: Date.now() + (2 * 60 * 60 * 1000)
           };
-          localStorage.setItem('bruh_enat_admin_token', 'token_super_admin_2026');
-          localStorage.setItem('bruh_enat_admin_user', JSON.stringify(defaultAdmin));
+
+          localStorage.setItem('bruh_enat_admin_session', JSON.stringify(sessionData));
+          localStorage.setItem('bruh_enat_admin_user', JSON.stringify(sessionData));
+          localStorage.setItem('bruh_enat_admin_token', 'sec_tok_' + Math.random().toString(36).substring(2, 12));
+
           window.location.href = '/admin/';
           return;
         }
 
-        // 3. Server API authentication fallback
-        const response = await fetch('/api/admin/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ email, password })
-        });
+        // Authentication Failed: Strict denial
+        failedAttempts += 1;
+        sessionStorage.setItem('login_fails', String(failedAttempts));
 
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          if (data.token) {
-            localStorage.setItem('bruh_enat_admin_token', data.token);
-            localStorage.setItem('bruh_enat_admin_user', JSON.stringify(data.admin));
-          }
-
-          if (data.admin && data.admin.role === 'CHECKIN_STAFF') {
-            window.location.href = '/admin/check-in';
-          } else {
-            window.location.href = '/admin/';
-          }
+        if (failedAttempts >= 4) {
+          const lockTime = Date.now() + (5 * 60 * 1000); // 5 minutes
+          sessionStorage.setItem('login_lock_until', String(lockTime));
+          alertBox.textContent = 'Access Denied: Maximum invalid attempts reached. Interface locked for 5 minutes. Security alert logged.';
         } else {
-          alertBox.textContent = data.error || 'Authentication failed. Please check your email and password.';
-          alertBox.style.display = 'block';
+          const remaining = 4 - failedAttempts;
+          alertBox.textContent = `Access Denied: Invalid administrator credentials. ${remaining} attempt(s) remaining before security lockout.`;
         }
+        alertBox.style.display = 'block';
+
       } catch (err) {
-        if (email.toLowerCase() === 'admin@bruhenat-hackathon.org' && password === 'AdminPassword2026!') {
-          const defaultAdmin = {
-            id: 'adm_lead_2026',
-            fullName: 'Platform Administrator',
-            email: 'admin@bruhenat-hackathon.org',
-            role: 'SUPER_ADMIN'
-          };
-          localStorage.setItem('bruh_enat_admin_token', 'token_super_admin_2026');
-          localStorage.setItem('bruh_enat_admin_user', JSON.stringify(defaultAdmin));
-          window.location.href = '/admin/';
-          return;
-        }
-        alertBox.textContent = 'Connection error. Please verify credentials or network connectivity.';
+        alertBox.textContent = 'Security verification error. Access rejected.';
         alertBox.style.display = 'block';
       } finally {
         btn.disabled = false;

@@ -279,6 +279,14 @@
     top: 0;
   }
 
+  body {
+    padding-top: 64px;
+  }
+
+  html {
+    scroll-padding-top: 74px;
+  }
+
   .nav-container {
     height: 64px;
   }

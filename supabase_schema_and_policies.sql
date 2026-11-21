@@ -103,8 +103,22 @@ VALUES (
 ) ON CONFLICT (email) DO NOTHING;
 
 -- ==============================================================================
+-- POSTGRESQL PRIVILEGES FOR ANON & AUTHENTICATED ROLES
+-- Essential so PostgREST allows the anon/publishable key to access public tables
+-- ==============================================================================
+
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
+
+-- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
--- Allows the Yegara Host static frontend to read & write without server dependencies
+-- Allows the static frontend & admin panel to read & write without server dependencies
 -- ==============================================================================
 
 ALTER TABLE public.registrations ENABLE ROW LEVEL SECURITY;
@@ -116,33 +130,33 @@ ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
 
 -- Allow Public (anon) to submit applications (INSERT)
 DROP POLICY IF EXISTS "Public insert registrations" ON public.registrations;
-CREATE POLICY "Public insert registrations" ON public.registrations FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public insert registrations" ON public.registrations FOR INSERT TO anon, authenticated WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Public insert teams" ON public.teams;
-CREATE POLICY "Public insert teams" ON public.teams FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public insert teams" ON public.teams FOR INSERT TO anon, authenticated WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Public insert attendees" ON public.attendees;
-CREATE POLICY "Public insert attendees" ON public.attendees FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public insert attendees" ON public.attendees FOR INSERT TO anon, authenticated WITH CHECK (true);
 
 -- Allow Public (anon) to view reference codes and tickets (SELECT)
 DROP POLICY IF EXISTS "Public select registrations" ON public.registrations;
-CREATE POLICY "Public select registrations" ON public.registrations FOR SELECT USING (true);
+CREATE POLICY "Public select registrations" ON public.registrations FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Public select attendees" ON public.attendees;
-CREATE POLICY "Public select attendees" ON public.attendees FOR SELECT USING (true);
+CREATE POLICY "Public select attendees" ON public.attendees FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Public select teams" ON public.teams;
-CREATE POLICY "Public select teams" ON public.teams FOR SELECT USING (true);
+CREATE POLICY "Public select teams" ON public.teams FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Public select tickets" ON public.tickets;
-CREATE POLICY "Public select tickets" ON public.tickets FOR SELECT USING (true);
+CREATE POLICY "Public select tickets" ON public.tickets FOR SELECT TO anon, authenticated USING (true);
 
 -- Allow Check-in desk to record and inspect attendance
 DROP POLICY IF EXISTS "Public insert attendance" ON public.attendance;
-CREATE POLICY "Public insert attendance" ON public.attendance FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public insert attendance" ON public.attendance FOR INSERT TO anon, authenticated WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Public select attendance" ON public.attendance;
-CREATE POLICY "Public select attendance" ON public.attendance FOR SELECT USING (true);
+CREATE POLICY "Public select attendance" ON public.attendance FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Public select admins" ON public.admins;
-CREATE POLICY "Public select admins" ON public.admins FOR SELECT USING (true);
+CREATE POLICY "Public select admins" ON public.admins FOR SELECT TO anon, authenticated USING (true);

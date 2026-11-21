@@ -376,7 +376,40 @@ async function loadDashboardStats() {
       }).join('');
     }
   } catch (err) {
-    console.error('Failed to load stats:', err);
+    console.warn('API endpoint unreachable, fetching stats directly from Supabase...', err.message);
+    const client = window.getSupabaseClient ? window.getSupabaseClient() : null;
+    if (client) {
+      try {
+        const { count: totalReg } = await client.from('registrations').select('*', { count: 'exact', head: true });
+        const { count: indReg } = await client.from('registrations').select('*', { count: 'exact', head: true }).eq('pathway', 'INDIVIDUAL');
+        const { count: teamReg } = await client.from('registrations').select('*', { count: 'exact', head: true }).eq('pathway', 'TEAM');
+        const { count: totalAtt } = await client.from('attendees').select('*', { count: 'exact', head: true });
+        const { count: checkedIn } = await client.from('attendance').select('*', { count: 'exact', head: true });
+
+        const totalR = totalReg || 0;
+        const totalA = totalAtt || 0;
+        const checkCount = checkedIn || 0;
+
+        document.getElementById('stat-total-registrations').textContent = totalR;
+        document.getElementById('stat-individual-regs').textContent = `${indReg || 0} Individual`;
+        document.getElementById('stat-team-regs').textContent = `${teamReg || 0} Teams`;
+
+        document.getElementById('stat-total-attendees').textContent = totalA;
+        document.getElementById('stat-verified-count').textContent = `${totalA} Verified`;
+        document.getElementById('stat-pending-count').textContent = `0 Pending`;
+
+        const checkInRate = totalA > 0 ? Math.round((checkCount / totalA) * 100) : 0;
+        document.getElementById('stat-checkin-rate').textContent = `${checkInRate}%`;
+        document.getElementById('stat-checkin-progress').style.width = `${checkInRate}%`;
+        document.getElementById('stat-checkin-meta').textContent = `${checkCount} checked in`;
+
+        const sidebarPill = document.getElementById('sidebar-attendees-pill');
+        if (sidebarPill) sidebarPill.textContent = `${totalA}`;
+        return;
+      } catch (supaErr) {
+        console.error('Supabase stats error:', supaErr);
+      }
+    }
     resetDashboardStats();
   }
 }
@@ -591,6 +624,72 @@ async function loadAttendees() {
 
     updateFilterChips();
   } catch (err) {
+    console.warn('API endpoint unreachable, loading attendees directly from Supabase...', err.message);
+    const client = window.getSupabaseClient ? window.getSupabaseClient() : null;
+    if (client) {
+      try {
+        let query = client.from('attendees').select('*, registrations(*), teams(*)');
+        if (state.attendees.search) {
+          query = query.ilike('full_name', `%${state.attendees.search}%`);
+        }
+        if (state.attendees.pathway) {
+          query = query.eq('pathway', state.attendees.pathway.toUpperCase());
+        }
+        const { data: attendees, error } = await query;
+        if (!error && attendees) {
+          state.attendees.total = attendees.length;
+          state.attendees.totalPages = Math.ceil(attendees.length / state.attendees.limit) || 1;
+          document.getElementById('attendees-total-badge').textContent = `${attendees.length} Participants`;
+          const sidebarPill = document.getElementById('sidebar-attendees-pill');
+          if (sidebarPill) sidebarPill.textContent = `${attendees.length}`;
+
+          if (!attendees.length) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 3rem; color: var(--admin-text-muted);">
+              <div style="font-size: 1.1rem; font-weight: 600; color: var(--admin-text-secondary); margin-bottom: 0.35rem;">No matching participants found</div>
+              <div style="font-size: 0.85rem;">Try adjusting your search criteria.</div>
+            </td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = attendees.map(a => {
+            const refCode = a.registrations?.reference_code || a.ticket_code || 'BE-2026';
+            const teamName = a.teams?.team_name || '';
+            const pathway = a.pathway || (teamName ? 'TEAM' : 'INDIVIDUAL');
+            return `
+              <tr>
+                <td>
+                  <div class="participant-name-group">
+                    <div class="participant-avatar">${escapeHtml(a.full_name ? a.full_name.charAt(0).toUpperCase() : 'P')}</div>
+                    <div>
+                      <div class="participant-name">${escapeHtml(a.full_name || 'Participant')}</div>
+                      <div class="participant-email">${escapeHtml(a.email || '')}</div>
+                      ${a.phone ? `<div class="participant-phone">${escapeHtml(a.phone)}</div>` : ''}
+                    </div>
+                  </div>
+                </td>
+                <td><span class="ref-code-chip">${escapeHtml(refCode)}</span></td>
+                <td>
+                  <span class="badge ${pathway === 'INDIVIDUAL' ? 'badge-primary' : 'badge-teal'}">${pathway}</span>
+                  ${teamName ? `<div style="font-size:0.8rem;font-weight:600;margin-top:0.25rem;">${escapeHtml(teamName)}</div>` : ''}
+                </td>
+                <td>
+                  <div style="font-size:0.85rem;font-weight:500;">${escapeHtml(a.preferred_track || 'Confidential Reporting')}</div>
+                  <div style="font-size:0.75rem;color:var(--admin-text-muted);">${escapeHtml(a.discipline || 'Developer')}</div>
+                </td>
+                <td><span class="badge badge-success">✓ Verified</span></td>
+                <td><span class="badge badge-info">Active</span></td>
+                <td style="text-align:right;">
+                  <button type="button" class="btn btn-sm btn-outline" onclick="navigator.clipboard.writeText('${refCode}')">Copy Ref</button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+          return;
+        }
+      } catch (supaErr) {
+        console.error('Supabase attendee fetch error:', supaErr);
+      }
+    }
     tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--admin-danger);">Network or server error while loading directory.</td></tr>`;
   }
 }

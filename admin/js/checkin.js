@@ -274,6 +274,70 @@ async function processScan(payload) {
       showErrorBanner(data.error || 'Check-in validation failed.');
     }
   } catch (err) {
+    console.warn('API endpoint offline, processing check-in directly via Supabase...', err.message);
+    const client = window.getSupabaseClient ? window.getSupabaseClient() : null;
+    if (client) {
+      try {
+        let code = payload.ticketCode || '';
+        if (payload.qrData) {
+          try {
+            const parsed = JSON.parse(payload.qrData);
+            code = parsed.code || parsed.ticketCode || code;
+          } catch (e) {
+            code = payload.qrData;
+          }
+        }
+        code = (code || '').trim();
+
+        // Find attendee by reference code or id
+        const { data: attendees } = await client.from('attendees').select('*, registrations(*)').or(`email.eq.${code},id.eq.${code}`);
+        let attendee = (attendees && attendees[0]) || null;
+
+        if (!attendee) {
+          const { data: byRef } = await client.from('registrations').select('*, attendees(*)').eq('reference_code', code);
+          if (byRef && byRef[0] && byRef[0].attendees && byRef[0].attendees[0]) {
+            attendee = byRef[0].attendees[0];
+          }
+        }
+
+        if (attendee) {
+          const { data: prevCheckIns } = await client.from('attendance').select('*').eq('attendee_id', attendee.id);
+          if (prevCheckIns && prevCheckIns.length > 0) {
+            showDuplicateBanner({
+              alreadyCheckedIn: true,
+              attendee: { fullName: attendee.full_name, track: attendee.preferred_track },
+              existingCheckIn: { checkedInAt: prevCheckIns[0].checked_in_at, staffName: 'Staff' }
+            });
+            return;
+          }
+
+          const checkInId = 'chk_' + Math.random().toString(36).substring(2, 10);
+          await client.from('attendance').insert({
+            id: checkInId,
+            attendee_id: attendee.id,
+            check_in_method: 'QR_SCAN',
+            checked_in_at: new Date().toISOString()
+          });
+
+          await client.from('attendees').update({ check_in_count: 1 }).eq('id', attendee.id);
+
+          showSuccessBanner({
+            attendee: {
+              fullName: attendee.full_name,
+              email: attendee.email,
+              pathway: attendee.pathway || 'INDIVIDUAL',
+              track: attendee.preferred_track
+            },
+            ticket: { ticketCode: code },
+            session: { sessionName: 'Opening Ceremony & Hackathon Kickoff' },
+            alreadyCheckedIn: false
+          });
+          return;
+        }
+      } catch (supaErr) {
+        console.error('Supabase checkin error:', supaErr);
+      }
+    }
     showErrorBanner('Network or communication error during scan check-in.');
   }
 }

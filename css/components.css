@@ -501,16 +501,6 @@
 .partner-emblem-badge:hover .partner-name {
   color: #FFFFFF;
 }
-  font-size: 0.95rem;
-  transition: all var(--transition-fast);
-}
-
-.partner-emblem-badge:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: var(--border-medium);
-  color: #FFF;
-  transform: translateY(-2px);
-}
 
 /* --------------------------------------------------------------------------
    3. ABOUT THE HACKATHON
@@ -1925,8 +1915,6 @@
 }
 
 .hero-partners-banner .partner-emblem-badge:hover .hero-partner-logo {
-  transform: scale(1.05);
-}
   transform: scale(1.05);
 }
 

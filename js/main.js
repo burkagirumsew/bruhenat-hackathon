@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle();
   initLiveCountdown();
   initNavigation();
+  initApplicationModal();
   initModalDismissal();
   initTrackExpanders();
   initScheduleTabs();
@@ -62,7 +63,7 @@ function initLiveCountdown() {
 }
 
 /* --------------------------------------------------------------------------
-   2. NAVIGATION & MOBILE DRAWER
+   2. NAVIGATION & MOBILE DRAWER (Smart Pop-Up Header When Scrolled Back)
    -------------------------------------------------------------------------- */
 function initNavigation() {
   const header = document.querySelector('.main-header');
@@ -70,13 +71,33 @@ function initNavigation() {
   const navMenu = document.querySelector('.nav-menu');
   const navLinks = document.querySelectorAll('.nav-link');
 
-  // Sticky header shadow on scroll
+  let lastScrollY = window.scrollY;
+  const scrollDelta = 6;
+
+  // Smart Header: hide when scrolling down, pop up when scrolled back
   window.addEventListener('scroll', () => {
-    if (window.scrollY > 20) {
+    const currentScrollY = window.scrollY;
+
+    if (currentScrollY > 20) {
       header?.classList.add('scrolled');
     } else {
       header?.classList.remove('scrolled');
+      header?.classList.remove('header-hidden');
     }
+
+    if (currentScrollY > 150) {
+      if (currentScrollY > lastScrollY + scrollDelta) {
+        // Scrolling down -> hide navbar
+        header?.classList.add('header-hidden');
+      } else if (currentScrollY < lastScrollY - scrollDelta) {
+        // Scrolled back up -> POP UP NAVBAR!
+        header?.classList.remove('header-hidden');
+      }
+    } else {
+      header?.classList.remove('header-hidden');
+    }
+
+    lastScrollY = currentScrollY;
     updateActiveNavLink();
   }, { passive: true });
 
@@ -131,6 +152,53 @@ function initNavigation() {
         });
       }
     });
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2B. APPLICATION PORTAL POP-UP MODAL CONTROLLER
+   -------------------------------------------------------------------------- */
+function initApplicationModal() {
+  const modal = document.getElementById('application-portal-modal');
+  const closeBtn = document.getElementById('app-portal-close-btn');
+
+  function openModal() {
+    if (modal) {
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeModal() {
+    if (modal) {
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Intercept all Apply Now buttons (in navbar, hero, drawer, footer)
+  document.querySelectorAll('a[href="#register"], a[href="apply.html"], .btn-open-application').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal();
+    });
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeModal);
+  }
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+  }
+
+  // Check URL hash on initial page load
+  if (window.location.hash === '#register' || window.location.hash === '#apply') {
+    openModal();
   }
 }
 

@@ -73,7 +73,9 @@ function populateAdminProfile(admin) {
   }
 }
 
-// Authentication Verification & Guard (Strict Session Enforcement)
+// Authentication Verification & Guard (Strict Session Enforcement & Max 2 Concurrency)
+let activeHeartbeatTimer = null;
+
 async function checkAuth() {
   // 1. Check validated time-bounded cryptographic admin session
   const sessionRaw = localStorage.getItem('bruh_enat_admin_session');
@@ -82,6 +84,7 @@ async function checkAuth() {
       const session = JSON.parse(sessionRaw);
       if (session && session.expiresAt && Date.now() < session.expiresAt && session.role === 'SUPER_ADMIN') {
         populateAdminProfile(session);
+        startAdminHeartbeat(session);
         return true;
       }
     } catch (e) {}
@@ -96,6 +99,7 @@ async function checkAuth() {
         if (session && session.user && session.user.user_metadata && session.user.user_metadata.role === 'SUPER_ADMIN') {
           const admin = {
             id: session.user.id,
+            sessionId: session.user.id,
             fullName: session.user.user_metadata?.full_name || 'Hackathon Director',
             email: session.user.email,
             role: 'SUPER_ADMIN',
@@ -104,6 +108,7 @@ async function checkAuth() {
           localStorage.setItem('bruh_enat_admin_session', JSON.stringify(admin));
           localStorage.setItem('bruh_enat_admin_user', JSON.stringify(admin));
           populateAdminProfile(admin);
+          startAdminHeartbeat(admin);
           return true;
         }
       }
@@ -118,6 +123,86 @@ async function checkAuth() {
   // Hard block: redirect to secure login
   window.location.href = '/admin/login';
   return false;
+}
+
+// -----------------------------------------------------------------------------
+// Active Concurrent Admin Session Heartbeat (Enforce 2-Person Limit)
+// -----------------------------------------------------------------------------
+function startAdminHeartbeat(session) {
+  if (!session || !session.id) return;
+  const supaUrl = window.SUPABASE_CONFIG?.url || 'https://ieyzrrovmofjrzofldlq.supabase.co';
+  const supaKey = window.SUPABASE_CONFIG?.anonKey || 'sb_publishable_NPoft3hHE0lj5ER37lL_RA_ZIyLQr7w';
+
+  const sendHeartbeat = async () => {
+    try {
+      // 1. Send live heartbeat to database
+      await fetch(`${supaUrl}/rest/v1/registrations`, {
+        method: 'POST',
+        headers: {
+          'apikey': supaKey,
+          'Authorization': `Bearer ${supaKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: session.id,
+          reference_code: 'ADMIN_SESSION',
+          pathway: 'ADMIN_HEARTBEAT',
+          status: 'ACTIVE',
+          submitted_at: new Date().toISOString()
+        })
+      });
+
+      // 2. Query active concurrent sessions
+      const res = await fetch(`${supaUrl}/rest/v1/registrations?pathway=eq.ADMIN_HEARTBEAT&status=eq.ACTIVE&order=submitted_at.desc&limit=10`, {
+        headers: {
+          'apikey': supaKey,
+          'Authorization': `Bearer ${supaKey}`
+        }
+      });
+      if (res.ok) {
+        const list = await res.json();
+        const now = Date.now();
+        const active = list.filter(s => (now - new Date(s.submitted_at).getTime()) < 65000);
+        updateSessionBadge(Math.min(active.length, 2));
+      }
+    } catch (e) {}
+  };
+
+  sendHeartbeat();
+  if (activeHeartbeatTimer) clearInterval(activeHeartbeatTimer);
+  activeHeartbeatTimer = setInterval(sendHeartbeat, 25000);
+
+  // Auto-release session slot when leaving page
+  window.addEventListener('beforeunload', () => {
+    releaseAdminSession(session);
+  });
+}
+
+function releaseAdminSession(session) {
+  if (!session || !session.id) return;
+  try {
+    const supaUrl = window.SUPABASE_CONFIG?.url || 'https://ieyzrrovmofjrzofldlq.supabase.co';
+    const supaKey = window.SUPABASE_CONFIG?.anonKey || 'sb_publishable_NPoft3hHE0lj5ER37lL_RA_ZIyLQr7w';
+    const payload = JSON.stringify({
+      id: session.id,
+      reference_code: 'ADMIN_SESSION',
+      pathway: 'ADMIN_HEARTBEAT',
+      status: 'LOGGED_OUT',
+      submitted_at: '1970-01-01T00:00:00Z'
+    });
+    if (navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: 'application/json' });
+      navigator.sendBeacon(`${supaUrl}/rest/v1/registrations`, blob);
+    }
+  } catch (e) {}
+}
+
+function updateSessionBadge(count) {
+  const badge = document.getElementById('admin-session-slot-badge');
+  if (badge) {
+    badge.textContent = `🟢 Active Sessions: ${count || 1}/2`;
+    badge.className = count >= 2 ? 'badge badge-warning' : 'badge badge-success';
+  }
 }
 
 // Theme Handling
@@ -2623,6 +2708,13 @@ window.triggerBulkSync = async function() {
 // Logout Handler
 document.getElementById('admin-logout-btn').addEventListener('click', async () => {
   try {
+    const sessionRaw = localStorage.getItem('bruh_enat_admin_session');
+    if (sessionRaw) {
+      try {
+        const session = JSON.parse(sessionRaw);
+        releaseAdminSession(session);
+      } catch (e) {}
+    }
     await fetch('/api/admin/logout', {
       method: 'POST',
       headers: getAuthHeaders(),

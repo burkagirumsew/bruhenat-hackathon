@@ -105,6 +105,7 @@
       <!-- Desktop Nav Menu -->
       <nav role="navigation" aria-label="Main Navigation">
         <ul class="nav-menu">
+          <li><a href="#home" class="nav-link active">Home</a></li>
           <li><a href="#about" class="nav-link">About</a></li>
           <li><a href="#challenge" class="nav-link">Challenge</a></li>
           <li><a href="#tracks" class="nav-link">Tracks</a></li>
@@ -289,27 +290,27 @@
 
           <!-- Co-organizers Banner -->
           <div class="hero-partners-banner">
-            <div class="partners-lead-text">Organized &amp; Supported By Leading Ecosystem Partners</div>
+            <div class="partners-lead-text">ORGANIZED &amp; SUPPORTED BY LEADING ECOSYSTEM PARTNERS</div>
             <div class="partners-logos-row">
               <div class="partner-emblem-badge">
-                <img src="assets/partners/alx-ethiopia.png" alt="ALX Ethiopia" class="hero-partner-logo" width="70" height="40">
-                <span>ALX Ethiopia</span>
-              </div>
-              <div class="partner-emblem-badge">
-                <img src="assets/partners/un-women.png" alt="UN Women - For All Women and Girls" class="hero-partner-logo" width="95" height="42">
-                <span>UN Women</span>
-              </div>
-              <div class="partner-emblem-badge">
-                <img src="assets/partners/enat-bank.png" alt="Enat Bank" class="hero-partner-logo" width="35" height="40">
-                <span>Enat Bank</span>
+                <img src="assets/partners/mols-logo.jpg" alt="Ministry of Labour & Skills" class="hero-partner-logo" width="90" height="40">
+                <span class="partner-name">Ministry of Labour &amp; Skills</span>
               </div>
               <div class="partner-emblem-badge">
                 <img src="assets/partners/mint-logo.jpeg" alt="Ministry of Innovation and Technology" class="hero-partner-logo" width="45" height="40">
-                <span>MiNT</span>
+                <span class="partner-name">MiNT</span>
               </div>
               <div class="partner-emblem-badge">
-                <img src="assets/partners/mols-logo.jpg" alt="Ministry of Labour & Skills" class="hero-partner-logo" width="90" height="40">
-                <span>Ministry of Labour &amp; Skills</span>
+                <img src="assets/partners/enat-bank.png" alt="Enat Bank" class="hero-partner-logo" width="35" height="40">
+                <span class="partner-name">Enat Bank</span>
+              </div>
+              <div class="partner-emblem-badge">
+                <img src="assets/partners/alx-ethiopia.png" alt="ALX Ethiopia" class="hero-partner-logo" width="70" height="40">
+                <span class="partner-name">ALX Ethiopia</span>
+              </div>
+              <div class="partner-emblem-badge">
+                <img src="assets/partners/un-women.png" alt="UN Women - For All Women and Girls" class="hero-partner-logo" width="95" height="42">
+                <span class="partner-name">UN Women</span>
               </div>
             </div>
           </div>
@@ -1892,10 +1893,17 @@
     <div class="section-divider"></div>
 
     <!-- ======================================================================
-         SECTION O: REGISTRATION APPLICATION PORTAL (DUAL PATHWAYS)
+         SECTION O: REGISTRATION APPLICATION PORTAL (POPUP MODAL & STANDALONE PORTAL)
          ====================================================================== -->
-    <section class="section-wrapper" id="register" aria-labelledby="register-title">
-      <div class="container registration-container">
+    <div id="application-portal-modal" class="modal-backdrop app-portal-modal" role="dialog" aria-modal="true" aria-labelledby="register-title">
+      <div class="app-portal-dialog">
+        <button type="button" class="app-portal-close-btn" id="app-portal-close-btn" aria-label="Close application portal">
+          <svg class="icon-svg" viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;stroke-width:2.5;" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <div id="register" class="container registration-container" style="max-width:100%;box-shadow:none;border:none;background:transparent;padding:0;">
         
         <div class="section-header text-center">
           <div class="section-eyebrow orange">
@@ -2254,7 +2262,8 @@
         </div>
 
       </div>
-    </section>
+      </div>
+    </div>
 
     <!-- ========================================================================
          SECTION P: GET IN TOUCH / CONTACT & COMMUNITY

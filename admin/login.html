@@ -64,8 +64,9 @@
 
     // SHA-256 Hashes of Authorized Administrator Master Keys (one-way cryptographic hash)
     const AUTHORIZED_KEY_HASHES = [
-      '678de335e86db005bae9743aef5254d208373baec3133c6bb644907b30275ffe',
-      'f3562c2958226cbd867989393d37da2b75a918ea97e8bee3966dce630d9e5890'
+      '2993bc53f25103db928c3c5c741ef3807dd8e1b52d3c95627d0a32724aeece0e', // Primary Master Password
+      '678de335e86db005bae9743aef5254d208373baec3133c6bb644907b30275ffe', // Fallback Organizer Key
+      'f3562c2958226cbd867989393d37da2b75a918ea97e8bee3966dce630d9e5890'  // Legacy Key
     ];
 
     async function hashString(str) {
@@ -132,13 +133,65 @@
         }
 
         if (isAuthorizedHash || supabaseSuccess) {
+          // Check active concurrent admin sessions (Maximum 2 at a time)
+          let activeAdminSessions = [];
+          const supaUrl = window.SUPABASE_CONFIG?.url || 'https://ieyzrrovmofjrzofldlq.supabase.co';
+          const supaKey = window.SUPABASE_CONFIG?.anonKey || 'sb_publishable_NPoft3hHE0lj5ER37lL_RA_ZIyLQr7w';
+          
+          try {
+            const sessRes = await fetch(`${supaUrl}/rest/v1/registrations?pathway=eq.ADMIN_HEARTBEAT&status=eq.ACTIVE&order=submitted_at.desc&limit=10`, {
+              headers: {
+                'apikey': supaKey,
+                'Authorization': `Bearer ${supaKey}`
+              }
+            });
+            
+            if (sessRes.ok) {
+              const list = await sessRes.json();
+              const nowTime = Date.now();
+              activeAdminSessions = list.filter(s => (nowTime - new Date(s.submitted_at).getTime()) < 65000);
+            }
+          } catch (fetchErr) {
+            console.warn('Session concurrency check notice:', fetchErr);
+          }
+
+          if (activeAdminSessions.length >= 2) {
+            alertBox.textContent = `Access Denied: Maximum 2 concurrent administrator sessions are currently in use (${activeAdminSessions.length}/2 slots active). Please wait for an active administrator to log out.`;
+            alertBox.style.display = 'block';
+            btn.disabled = false;
+            btnText.style.display = 'inline';
+            btnSpinner.style.display = 'none';
+            return;
+          }
+
+          // Register new active session slot
+          const newSessionId = 'sess_' + Math.random().toString(36).substring(2, 10);
+          try {
+            await fetch(`${supaUrl}/rest/v1/registrations`, {
+              method: 'POST',
+              headers: {
+                'apikey': supaKey,
+                'Authorization': `Bearer ${supaKey}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                id: newSessionId,
+                reference_code: 'ADMIN_SESSION',
+                pathway: 'ADMIN_HEARTBEAT',
+                status: 'ACTIVE',
+                submitted_at: new Date().toISOString()
+              })
+            });
+          } catch (e) {}
+
           // Reset failed attempts
           sessionStorage.removeItem('login_fails');
           sessionStorage.removeItem('login_lock_until');
 
           // Issue time-bounded authenticated admin session (2 hours strictly)
           const sessionData = {
-            id: 'adm_sec_' + Math.random().toString(36).substring(2, 9),
+            id: newSessionId,
+            sessionId: newSessionId,
             email: email.toLowerCase(),
             fullName: 'Hackathon Director',
             role: 'SUPER_ADMIN',

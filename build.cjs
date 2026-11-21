@@ -35,6 +35,7 @@ for (const dirName of DIRS_TO_COPY) {
 const FILES_TO_COPY = [
   'index.html',
   'index.js',
+  'apply.html',
   'ticket.html',
   'verify.html',
   'README.md',

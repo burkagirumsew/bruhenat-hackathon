@@ -34,6 +34,7 @@ for (const dirName of DIRS_TO_COPY) {
 // 3. Standalone files to copy
 const FILES_TO_COPY = [
   'index.html',
+  'index.js',
   'ticket.html',
   'verify.html',
   'README.md',

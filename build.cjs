@@ -50,4 +50,12 @@ for (const fileName of FILES_TO_COPY) {
   }
 }
 
+// 4. Ensure all alternative entrypoint aliases exist in /dist
+const entrySrc = path.join(ROOT_DIR, 'index.js');
+if (fs.existsSync(entrySrc)) {
+  fs.copyFileSync(entrySrc, path.join(DIST_DIR, 'server.js'));
+  fs.copyFileSync(entrySrc, path.join(DIST_DIR, 'app.js'));
+  console.log('[Build] Created entrypoint aliases: server.js, app.js');
+}
+
 console.log('[Build] Static site production build complete! Output ready in /dist');

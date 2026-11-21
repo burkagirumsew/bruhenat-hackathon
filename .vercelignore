@@ -1,0 +1,8 @@
+api/
+backend/
+migrations/
+tests/
+scratch/
+*.zip
+.backup/
+admin_backup/

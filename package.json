@@ -5,14 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "echo Static site ready",
-    "start": "node backend/src/server.js",
-    "test": "npm --prefix backend test",
-    "test:worker": "node tests/biruh_enat_test_suite.mjs",
-    "migrate": "npm --prefix backend run migrate",
-    "seed": "npm --prefix backend run seed",
-    "create-admin": "npm --prefix backend run create-admin",
-    "reset-admin": "npm --prefix backend run reset-admin"
+    "build": "node build.cjs",
+    "test:worker": "node tests/biruh_enat_test_suite.mjs"
   },
   "engines": {
     "node": ">=18.0.0"

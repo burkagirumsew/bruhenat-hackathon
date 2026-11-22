@@ -81,6 +81,27 @@
     const btnText = document.getElementById('btn-text');
     const btnSpinner = document.getElementById('btn-spinner');
 
+    function getStoredAdminSession() {
+      for (const storage of [localStorage, sessionStorage]) {
+        try {
+          const raw = storage.getItem('bruh_enat_admin_session');
+          if (raw) {
+            const s = JSON.parse(raw);
+            if (s && s.expiresAt && Date.now() < s.expiresAt && (s.role === 'SUPER_ADMIN' || s.role === 'ADMIN')) {
+              return s;
+            }
+          }
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    // Auto-redirect if already authenticated
+    const activeExistingSession = getStoredAdminSession();
+    if (activeExistingSession) {
+      window.location.href = '/admin/';
+    }
+
     let failedAttempts = parseInt(sessionStorage.getItem('login_fails') || '0', 10);
     let lockUntil = parseInt(sessionStorage.getItem('login_lock_until') || '0', 10);
 
@@ -149,12 +170,16 @@
             if (sessRes.ok) {
               const list = await sessRes.json();
               const nowTime = Date.now();
-              activeAdminSessions = list.filter(s => (nowTime - new Date(s.submitted_at).getTime()) < 65000);
+              activeAdminSessions = list.filter(s => {
+                const age = nowTime - new Date(s.submitted_at).getTime();
+                return age < 60000;
+              });
             }
           } catch (fetchErr) {
             console.warn('Session concurrency check notice:', fetchErr);
           }
 
+          // If 2 different sessions are active, enforce concurrency limit
           if (activeAdminSessions.length >= 2) {
             alertBox.textContent = `Access Denied: Maximum 2 concurrent administrator sessions are currently in use (${activeAdminSessions.length}/2 slots active). Please wait for an active administrator to log out.`;
             alertBox.style.display = 'block';
@@ -199,9 +224,26 @@
             expiresAt: Date.now() + (2 * 60 * 60 * 1000)
           };
 
-          localStorage.setItem('bruh_enat_admin_session', JSON.stringify(sessionData));
-          localStorage.setItem('bruh_enat_admin_user', JSON.stringify(sessionData));
-          localStorage.setItem('bruh_enat_admin_token', 'sec_tok_' + Math.random().toString(36).substring(2, 12));
+          const sessionJson = JSON.stringify(sessionData);
+          const token = 'sec_tok_' + Math.random().toString(36).substring(2, 12);
+
+          // Store across localStorage and sessionStorage for bulletproof persistence
+          try {
+            localStorage.setItem('bruh_enat_admin_session', sessionJson);
+            localStorage.setItem('bruh_enat_admin_user', sessionJson);
+            localStorage.setItem('bruh_enat_admin_token', token);
+          } catch (e) {}
+
+          try {
+            sessionStorage.setItem('bruh_enat_admin_session', sessionJson);
+            sessionStorage.setItem('bruh_enat_admin_user', sessionJson);
+            sessionStorage.setItem('bruh_enat_admin_token', token);
+          } catch (e) {}
+
+          // Cookie fallback
+          try {
+            document.cookie = `bruh_enat_admin_session=${encodeURIComponent(sessionJson)}; path=/; max-age=7200; SameSite=Lax`;
+          } catch (e) {}
 
           window.location.href = '/admin/';
           return;

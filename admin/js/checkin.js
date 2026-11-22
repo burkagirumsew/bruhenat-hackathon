@@ -128,23 +128,48 @@ function showToast(message, type = 'info', duration = 3500) {
   }
 }
 
-// Authentication & Profile Initialization (Strict Session Enforcement)
-async function initAuth() {
-  const sessionRaw = localStorage.getItem('bruh_enat_admin_session');
-  if (sessionRaw) {
+function getStoredAdminSession() {
+  for (const storage of [localStorage, sessionStorage]) {
     try {
-      const session = JSON.parse(sessionRaw);
-      if (session && session.expiresAt && Date.now() < session.expiresAt) {
-        document.getElementById('user-name').textContent = session.fullName || 'Admin Staff';
-        const roleElem = document.getElementById('user-role');
-        roleElem.textContent = (session.role || 'STAFF').replace('_', ' ');
-        roleElem.className = `role-pill role-${session.role || 'STAFF'}`;
-        if (session.role === 'SUPER_ADMIN' || session.role === 'ADMIN') {
-          document.getElementById('dashboard-link').style.display = 'inline-flex';
-        }
-        return;
+      const raw = storage.getItem('bruh_enat_admin_session');
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s && s.expiresAt && Date.now() < s.expiresAt) return s;
       }
     } catch (e) {}
+  }
+  try {
+    const match = document.cookie.match(/(?:^|;\s*)bruh_enat_admin_session=([^;]+)/);
+    if (match) {
+      const s = JSON.parse(decodeURIComponent(match[1]));
+      if (s && s.expiresAt && Date.now() < s.expiresAt) return s;
+    }
+  } catch (e) {}
+  return null;
+}
+
+// Authentication & Profile Initialization (Strict Session Enforcement)
+async function initAuth() {
+  const session = getStoredAdminSession();
+  if (session) {
+    try {
+      const json = JSON.stringify(session);
+      localStorage.setItem('bruh_enat_admin_session', json);
+      sessionStorage.setItem('bruh_enat_admin_session', json);
+    } catch (e) {}
+
+    const nameElem = document.getElementById('user-name');
+    if (nameElem) nameElem.textContent = session.fullName || 'Admin Staff';
+    const roleElem = document.getElementById('user-role');
+    if (roleElem) {
+      roleElem.textContent = (session.role || 'STAFF').replace('_', ' ');
+      roleElem.className = `role-pill role-${session.role || 'STAFF'}`;
+    }
+    const dashLink = document.getElementById('dashboard-link');
+    if (dashLink && (session.role === 'SUPER_ADMIN' || session.role === 'ADMIN')) {
+      dashLink.style.display = 'inline-flex';
+    }
+    return;
   }
 
   try {
@@ -152,21 +177,29 @@ async function initAuth() {
     if (res.ok) {
       const data = await res.json();
       if (data.success && data.admin) {
-        document.getElementById('user-name').textContent = data.admin.fullName;
+        const nameElem = document.getElementById('user-name');
+        if (nameElem) nameElem.textContent = data.admin.fullName;
         const roleElem = document.getElementById('user-role');
-        roleElem.textContent = data.admin.role.replace('_', ' ');
-        roleElem.className = `role-pill role-${data.admin.role}`;
-        if (data.admin.role === 'SUPER_ADMIN' || data.admin.role === 'ADMIN') {
-          document.getElementById('dashboard-link').style.display = 'inline-flex';
+        if (roleElem) {
+          roleElem.textContent = data.admin.role.replace('_', ' ');
+          roleElem.className = `role-pill role-${data.admin.role}`;
+        }
+        const dashLink = document.getElementById('dashboard-link');
+        if (dashLink && (data.admin.role === 'SUPER_ADMIN' || data.admin.role === 'ADMIN')) {
+          dashLink.style.display = 'inline-flex';
         }
         return;
       }
     }
   } catch (err) {}
 
-  localStorage.removeItem('bruh_enat_admin_session');
-  localStorage.removeItem('bruh_enat_admin_token');
-  localStorage.removeItem('bruh_enat_admin_user');
+  try {
+    localStorage.removeItem('bruh_enat_admin_session');
+    localStorage.removeItem('bruh_enat_admin_token');
+    localStorage.removeItem('bruh_enat_admin_user');
+    sessionStorage.clear();
+    document.cookie = 'bruh_enat_admin_session=; path=/; max-age=0';
+  } catch (e) {}
   window.location.href = '/admin/login';
 }
 
@@ -605,10 +638,15 @@ async function loadRecentCheckIns() {
 // Logout handler
 document.getElementById('logout-btn').addEventListener('click', async () => {
   try {
-    await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
+    await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
   } finally {
-    localStorage.removeItem('bruh_enat_admin_token');
-    localStorage.removeItem('bruh_enat_admin_user');
+    try {
+      localStorage.removeItem('bruh_enat_admin_session');
+      localStorage.removeItem('bruh_enat_admin_token');
+      localStorage.removeItem('bruh_enat_admin_user');
+      sessionStorage.clear();
+      document.cookie = 'bruh_enat_admin_session=; path=/; max-age=0';
+    } catch (e) {}
     window.location.href = '/admin/login';
   }
 });

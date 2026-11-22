@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initDynamicTeamRoster();
   initFormValidationAndSubmission();
   initDraftAutosave();
+  initSavedTicketBadge();
 });
 
 /* --------------------------------------------------------------------------
@@ -179,6 +180,11 @@ function handleSubmission(e, pathway) {
   const submitBtn = form.querySelector('button[type="submit"]');
   const errorBox = form.querySelector('.form-error-summary');
 
+  // Prevent duplicate submissions if already processing
+  if (form.dataset.submitting === 'true') {
+    return;
+  }
+
   // Clear previous errors
   if (errorBox) {
     errorBox.style.display = 'none';
@@ -201,95 +207,109 @@ function handleSubmission(e, pathway) {
     return;
   }
 
-  // Compile Submission Payload
-  const payload = compileFormData(form, pathway);
-
-  // Set Loading State
+  // Set duplicate submission protection and loading state
+  form.dataset.submitting = 'true';
   const originalBtnHtml = submitBtn.innerHTML;
   submitBtn.disabled = true;
   submitBtn.innerHTML = `
     <svg class="icon-svg" viewBox="0 0 24 24" style="width:20px;height:20px;animation:spin 1s linear infinite;margin-right:8px;display:inline-block;vertical-align:middle;">
       <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-dasharray="32" stroke-linecap="round"/>
     </svg>
-    Processing Application...
+    Submitting Application...
   `;
 
-  // Primary Submission via Supabase
-  const performSubmission = async () => {
-    try {
-      // 1. Direct Supabase submission (Fast, Serverless & 100% Reliable)
-      if (typeof window.BRUH_ENAT_SUPABASE !== 'undefined') {
-        try {
-          if (pathway === 'individual') {
-            return await window.BRUH_ENAT_SUPABASE.submitIndividualRegistration(payload.applicant);
-          } else {
-            return await window.BRUH_ENAT_SUPABASE.submitTeamRegistration(payload.team);
-          }
-        } catch (supaErr) {
-          console.warn('Supabase submission notice, proceeding with verified receipt:', supaErr);
-        }
-      }
-    } catch (outerErr) {
-      console.warn('Submission dispatcher notice:', outerErr);
-    }
+  // Compile Submission Payload
+  const payload = compileFormData(form, pathway);
 
-    // 2. Guaranteed confirmed receipt with official reference code
-    const fallbackRef = (pathway === 'team' ? 'BE-2026-TEAM-' : 'BE-2026-IND-') + Math.floor(1000 + Math.random() * 9000);
-    return {
-      success: true,
-      referenceCode: fallbackRef,
-      data: {
-        referenceCode: fallbackRef,
-        ticketId: 'att_' + Date.now().toString(36),
-        status: 'confirmed',
-        attendee: {
-          fullName: payload.applicant?.fullName || payload.team?.leader?.fullName || 'Participant',
-          referenceCode: fallbackRef
-        }
+  // Perform submission directly to Supabase backend
+  const performSubmission = async () => {
+    if (typeof window.BRUH_ENAT_SUPABASE !== 'undefined') {
+      if (pathway === 'individual') {
+        return await window.BRUH_ENAT_SUPABASE.submitIndividualRegistration(payload.applicant);
+      } else {
+        return await window.BRUH_ENAT_SUPABASE.submitTeamRegistration(payload.team);
       }
-    };
+    }
+    throw new Error('Database service is not initialized. Please refresh and try again.');
   };
 
   performSubmission()
-  .then((data) => {
-    // Hide previous error banner
-    if (errorBox) {
-      errorBox.style.display = 'none';
-      errorBox.innerHTML = '';
-    }
+    .then((data) => {
+      // Backend confirmation received!
+      if (data && data.referenceCode) {
+        payload.referenceCode = data.referenceCode;
+      } else if (data && data.data && data.data.referenceCode) {
+        payload.referenceCode = data.data.referenceCode;
+      }
 
-    // Synchronize reference code with the database's authoritative record
-    if (data && data.data && data.data.referenceCode) {
-      payload.referenceCode = data.data.referenceCode;
-    } else if (data && data.referenceCode) {
-      payload.referenceCode = data.referenceCode;
-    }
+      // Hide error box
+      if (errorBox) {
+        errorBox.style.display = 'none';
+        errorBox.innerHTML = '';
+      }
 
-    // Clear autosave draft on verified database save
-    clearDraft(pathway);
+      // Clear draft storage
+      clearDraft(pathway);
 
-    // Display confirmation modal with real server response
-    try {
-      completeSubmissionSuccess(payload, false, data);
-    } catch (modalErr) {
-      console.error('Error rendering confirmation modal:', modalErr);
-      alert('Application Received! Your Reference Code is: ' + payload.referenceCode);
-    }
-  })
-  .catch((err) => {
-    console.warn("Unexpected registration submission exception, recovering with confirmation:", err);
-    // Graceful recovery: never leave the user stranded with "Failed to fetch"
-    clearDraft(pathway);
-    try {
-      completeSubmissionSuccess(payload, false, { success: true, referenceCode: payload.referenceCode });
-    } catch (e) {
-      alert('Application Received! Your Reference Code is: ' + payload.referenceCode);
-    }
-  })
-  .finally(() => {
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalBtnHtml;
-  });
+      // Reset form fields
+      try {
+        form.reset();
+      } catch (resetErr) {}
+
+      // Automatically close the application portal modal pop-up so user sees main website again
+      const appPortalModal = document.getElementById('application-portal-modal');
+      if (appPortalModal) {
+        appPortalModal.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      // Save confirmed registration details to persistent storage so pass is never lost
+      const ticketInfo = {
+        referenceCode: payload.referenceCode,
+        pathway: payload.pathway,
+        submittedAt: payload.submittedAt || new Date().toISOString(),
+        fullName: payload.pathway === 'individual' ? payload.applicant.fullName : (payload.team.leader.fullName || payload.team.teamName),
+        email: payload.pathway === 'individual' ? payload.applicant.email : payload.team.leader.email,
+        track: payload.pathway === 'individual' ? payload.applicant.preferredTrack : payload.team.track,
+        ticketId: (data && data.data && (data.data.ticketId || data.data.referenceCode)) || payload.referenceCode,
+        teamName: payload.pathway === 'team' ? payload.team.teamName : null
+      };
+
+      try {
+        localStorage.setItem('bruh_last_ticket', JSON.stringify(ticketInfo));
+        sessionStorage.setItem('bruh_last_ticket', JSON.stringify(ticketInfo));
+        localStorage.setItem(`bruh_ticket_${payload.referenceCode}`, JSON.stringify(ticketInfo));
+      } catch (storageErr) {}
+
+      // Display success confirmation modal and show floating ticket recovery pill
+      try {
+        completeSubmissionSuccess(payload, false, data);
+        showPersistentTicketBar(ticketInfo);
+      } catch (modalErr) {
+        console.error('Error rendering confirmation modal:', modalErr);
+        alert('Application Submitted Successfully! Your Reference Code is: ' + payload.referenceCode);
+      }
+    })
+    .catch((err) => {
+      console.error('Registration submission failed:', err);
+      // Keep registration pop-up OPEN and display a clear error message
+      if (errorBox) {
+        errorBox.style.display = 'block';
+        errorBox.innerHTML = `
+          <strong>Application Submission Failed:</strong>
+          <p style="margin-top:0.4rem;font-size:0.875rem;">
+            ${escapeHtml(err.message || 'Unable to store registration in the database. Please check your internet connection and try again.')}
+          </p>
+        `;
+        errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    })
+    .finally(() => {
+      // Re-enable submit button and remove submitting lock
+      form.dataset.submitting = 'false';
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnHtml;
+    });
 }
 
 function validateForm(form, pathway) {
@@ -534,17 +554,98 @@ END:VCALENDAR`.trim();
     };
   }
 
-  // Open modal
+  // Open confirmation modal
   modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
 
-  // Close bindings
+  // Ensure View Pass button exists in modal actions
+  let passBtn = modal.querySelector('#btn-modal-view-pass');
+  if (!passBtn) {
+    const actionsContainer = modal.querySelector('.modal-actions');
+    if (actionsContainer) {
+      passBtn = document.createElement('a');
+      passBtn.id = 'btn-modal-view-pass';
+      passBtn.className = 'btn btn-primary btn-sm';
+      passBtn.target = '_blank';
+      passBtn.innerHTML = `
+        <svg class="icon-svg" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M2 9a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v2a2 2 0 0 0 0 4v2a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3v-2a2 2 0 0 0 0-4V9z"/></svg>
+        View Digital Pass
+      `;
+      actionsContainer.insertBefore(passBtn, actionsContainer.firstChild);
+    }
+  }
+  if (passBtn) {
+    passBtn.href = `/ticket.html?ref=${encodeURIComponent(payload.referenceCode)}&code=${encodeURIComponent(payload.referenceCode)}`;
+  }
+
+  // Close bindings - return to main website
   const closeBtn = modal.querySelector('.modal-close-btn');
   const doneBtn = modal.querySelector('#btn-modal-done');
   function closeModal() {
     modal.classList.remove('open');
+    document.body.style.overflow = '';
   }
   if (closeBtn) closeBtn.onclick = closeModal;
   if (doneBtn) doneBtn.onclick = closeModal;
+}
+
+/* --------------------------------------------------------------------------
+   3B. PERSISTENT TICKET RECOVERY BAR (Main Website Access)
+   -------------------------------------------------------------------------- */
+function showPersistentTicketBar(ticketInfo) {
+  if (!ticketInfo || !ticketInfo.referenceCode) return;
+  let bar = document.getElementById('floating-ticket-toast');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'floating-ticket-toast';
+    bar.className = 'floating-ticket-toast';
+    document.body.appendChild(bar);
+  }
+
+  const passUrl = `/ticket.html?ref=${encodeURIComponent(ticketInfo.referenceCode)}&code=${encodeURIComponent(ticketInfo.ticketId || ticketInfo.referenceCode)}`;
+  bar.innerHTML = `
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;justify-content:space-between;width:100%;">
+      <div style="display:flex;align-items:center;gap:0.6rem;">
+        <span style="font-size:1.35rem;line-height:1;">🎉</span>
+        <div>
+          <div style="font-weight:700;font-size:0.875rem;color:#ffffff;line-height:1.2;">
+            Registration Confirmed!
+          </div>
+          <div style="font-size:0.75rem;color:#fed7aa;font-family:'JetBrains Mono',monospace;">
+            Ref: ${escapeHtml(ticketInfo.referenceCode)}
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <a href="${passUrl}" target="_blank" class="btn btn-gold btn-sm" style="font-size:0.775rem;padding:0.35rem 0.85rem;text-decoration:none;">
+          View Pass
+        </a>
+        <button type="button" id="close-ticket-toast" aria-label="Dismiss" style="background:none;border:none;color:#94a3b8;font-size:1.25rem;cursor:pointer;padding:0 0.25rem;line-height:1;">
+          &times;
+        </button>
+      </div>
+    </div>
+  `;
+  bar.style.display = 'block';
+
+  const closeToastBtn = bar.querySelector('#close-ticket-toast');
+  if (closeToastBtn) {
+    closeToastBtn.onclick = () => {
+      bar.style.display = 'none';
+    };
+  }
+}
+
+function initSavedTicketBadge() {
+  try {
+    const raw = localStorage.getItem('bruh_last_ticket') || sessionStorage.getItem('bruh_last_ticket');
+    if (raw) {
+      const ticket = JSON.parse(raw);
+      if (ticket && ticket.referenceCode) {
+        showPersistentTicketBar(ticket);
+      }
+    }
+  } catch (e) {}
 }
 
 /* --------------------------------------------------------------------------

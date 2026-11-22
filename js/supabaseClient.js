@@ -30,7 +30,7 @@
 
   /**
    * Submit Individual Registration
-   * Instantly creates confirmed reference code and syncs to Supabase in background.
+   * Accurately creates confirmed reference code and awaits Supabase sync.
    */
   async function submitIndividualRegistration(applicant) {
     applicant = applicant || {};
@@ -69,79 +69,95 @@
       console.warn('Storage notice:', e);
     }
 
-    // 2. Dispatch to Supabase asynchronously
-    (async () => {
-      try {
-        const client = typeof window !== 'undefined' && window.getSupabaseClient ? window.getSupabaseClient() : null;
-        if (client) {
-          await client.from('registrations').insert({
+    // 2. Dispatch to Supabase and await confirmation
+    try {
+      const client = typeof window !== 'undefined' && window.getSupabaseClient ? window.getSupabaseClient() : null;
+      if (client) {
+        const { error: regErr } = await client.from('registrations').insert({
+          id: regId,
+          reference_code: refCode,
+          pathway: 'INDIVIDUAL',
+          status: 'CONFIRMED',
+          submitted_at: now,
+          updated_at: now
+        });
+        if (regErr) {
+          console.error('Supabase registration insert error:', regErr);
+          throw new Error(regErr.message || 'Database registration error');
+        }
+
+        const { error: attErr } = await client.from('attendees').insert({
+          id: attId,
+          registration_id: regId,
+          full_name: fullName,
+          email: email,
+          phone: phone,
+          city: city,
+          discipline: discipline,
+          experience_level: experienceLevel,
+          preferred_track: preferredTrack,
+          skills: skills,
+          is_team_leader: false,
+          matching_consent: Boolean(applicant.matchingConsent || applicant.consentTeamMatching),
+          eligibility_confirmed: true,
+          safety_pledge_confirmed: true,
+          email_verified: true,
+          created_at: now,
+          updated_at: now
+        });
+        if (attErr) {
+          console.error('Supabase attendee insert error:', attErr);
+          throw new Error(attErr.message || 'Database attendee error');
+        }
+      } else {
+        // Direct REST fallback
+        const headers = {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_CONFIG.anonKey,
+          'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
+        };
+        const regRes = await fetch(`${SUPABASE_CONFIG.restUrl}/registrations`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
             id: regId,
             reference_code: refCode,
             pathway: 'INDIVIDUAL',
             status: 'CONFIRMED',
-            submitted_at: now,
-            updated_at: now
-          });
+            submitted_at: now
+          })
+        });
+        if (!regRes.ok) {
+          const errData = await regRes.json().catch(() => ({}));
+          throw new Error(errData.message || `Database error (${regRes.status})`);
+        }
 
-          await client.from('attendees').insert({
+        const attRes = await fetch(`${SUPABASE_CONFIG.restUrl}/attendees`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
             id: attId,
             registration_id: regId,
             full_name: fullName,
             email: email,
             phone: phone,
-            city: city,
             discipline: discipline,
-            experience_level: experienceLevel,
             preferred_track: preferredTrack,
-            skills: skills,
-            is_team_leader: false,
-            matching_consent: Boolean(applicant.matchingConsent || applicant.consentTeamMatching),
-            eligibility_confirmed: true,
-            safety_pledge_confirmed: true,
             email_verified: true,
-            created_at: now,
-            updated_at: now
-          });
-        } else {
-          // REST fallback
-          const headers = {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_CONFIG.anonKey,
-            'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
-          };
-          await fetch(`${SUPABASE_CONFIG.restUrl}/registrations`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-              id: regId,
-              reference_code: refCode,
-              pathway: 'INDIVIDUAL',
-              status: 'CONFIRMED',
-              submitted_at: now
-            })
-          });
-          await fetch(`${SUPABASE_CONFIG.restUrl}/attendees`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-              id: attId,
-              registration_id: regId,
-              full_name: fullName,
-              email: email,
-              phone: phone,
-              discipline: discipline,
-              preferred_track: preferredTrack,
-              email_verified: true,
-              created_at: now
-            })
-          });
+            created_at: now
+          })
+        });
+        if (!attRes.ok) {
+          const errData = await attRes.json().catch(() => ({}));
+          throw new Error(errData.message || `Database error (${attRes.status})`);
         }
-      } catch (netErr) {
-        console.warn('Background Supabase sync notice:', netErr.message);
       }
-    })();
+    } catch (netErr) {
+      console.error('Registration backend write failed:', netErr);
+      throw netErr;
+    }
 
-    // Return immediate guaranteed success
+    // Return confirmed receipt
     return {
       success: true,
       referenceCode: refCode,
@@ -161,7 +177,7 @@
 
   /**
    * Submit Team Registration
-   * Instantly creates confirmed reference code and syncs to Supabase in background.
+   * Accurately creates confirmed reference code and awaits Supabase sync for team & members.
    */
   async function submitTeamRegistration(teamData) {
     teamData = teamData || {};
@@ -195,20 +211,101 @@
       }
     } catch (e) {}
 
-    // Dispatch to Supabase asynchronously
-    (async () => {
-      try {
-        const client = typeof window !== 'undefined' && window.getSupabaseClient ? window.getSupabaseClient() : null;
-        if (client) {
-          await client.from('registrations').insert({
+    // Dispatch to Supabase and await confirmation
+    try {
+      const client = typeof window !== 'undefined' && window.getSupabaseClient ? window.getSupabaseClient() : null;
+      if (client) {
+        const { error: regErr } = await client.from('registrations').insert({
+          id: regId,
+          reference_code: refCode,
+          pathway: 'TEAM',
+          status: 'CONFIRMED',
+          team_idea: teamData.solutionConcept || '',
+          submitted_at: now
+        });
+        if (regErr) {
+          console.error('Supabase team registration error:', regErr);
+          throw new Error(regErr.message || 'Database registration error');
+        }
+
+        const { error: teamErr } = await client.from('teams').insert({
+          id: teamId,
+          registration_id: regId,
+          team_name: teamName,
+          selected_track: track,
+          team_leader_id: leaderId,
+          member_count: 1 + members.length,
+          created_at: now
+        });
+        if (teamErr) {
+          console.error('Supabase team insert error:', teamErr);
+          throw new Error(teamErr.message || 'Database team error');
+        }
+
+        // Insert Leader into attendees
+        const { error: leaderErr } = await client.from('attendees').insert({
+          id: leaderId,
+          registration_id: regId,
+          team_id: teamId,
+          full_name: (leader.fullName || 'Team Leader').trim(),
+          email: (leader.email || '').trim().toLowerCase(),
+          phone: (leader.phone || '').trim(),
+          discipline: leader.discipline || leader.role || 'Team Leader',
+          preferred_track: track,
+          is_team_leader: true,
+          email_verified: true,
+          created_at: now
+        });
+        if (leaderErr) {
+          console.error('Supabase leader insert error:', leaderErr);
+          throw new Error(leaderErr.message || 'Database leader error');
+        }
+
+        // Insert additional team members
+        for (const m of members) {
+          const mAttId = generateId('att');
+          await client.from('attendees').insert({
+            id: mAttId,
+            registration_id: regId,
+            team_id: teamId,
+            full_name: (m.fullName || 'Team Member').trim(),
+            email: (m.email || '').trim().toLowerCase(),
+            phone: (m.phone || '').trim(),
+            discipline: m.role || 'Team Member',
+            preferred_track: track,
+            is_team_leader: false,
+            email_verified: true,
+            created_at: now
+          });
+        }
+      } else {
+        // Direct REST fallback
+        const headers = {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_CONFIG.anonKey,
+          'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
+        };
+        const regRes = await fetch(`${SUPABASE_CONFIG.restUrl}/registrations`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
             id: regId,
             reference_code: refCode,
             pathway: 'TEAM',
             status: 'CONFIRMED',
             team_idea: teamData.solutionConcept || '',
             submitted_at: now
-          });
-          await client.from('teams').insert({
+          })
+        });
+        if (!regRes.ok) {
+          const errData = await regRes.json().catch(() => ({}));
+          throw new Error(errData.message || `Database error (${regRes.status})`);
+        }
+
+        await fetch(`${SUPABASE_CONFIG.restUrl}/teams`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
             id: teamId,
             registration_id: regId,
             team_name: teamName,
@@ -216,32 +313,38 @@
             team_leader_id: leaderId,
             member_count: 1 + members.length,
             created_at: now
-          });
-          await client.from('attendees').insert({
+          })
+        });
+
+        await fetch(`${SUPABASE_CONFIG.restUrl}/attendees`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
             id: leaderId,
             registration_id: regId,
             team_id: teamId,
             full_name: (leader.fullName || 'Team Leader').trim(),
             email: (leader.email || '').trim().toLowerCase(),
             phone: (leader.phone || '').trim(),
-            discipline: leader.discipline || 'Team Leader',
+            discipline: leader.discipline || leader.role || 'Team Leader',
             preferred_track: track,
             is_team_leader: true,
             email_verified: true,
             created_at: now
-          });
-        }
-      } catch (err) {
-        console.warn('Background Supabase sync notice:', err.message);
+          })
+        });
       }
-    })();
+    } catch (netErr) {
+      console.error('Team registration backend write failed:', netErr);
+      throw netErr;
+    }
 
     return {
       success: true,
       referenceCode: refCode,
       data: {
         referenceCode: refCode,
-        ticketId: regId,
+        ticketId: leaderId,
         status: 'confirmed',
         teamName
       }

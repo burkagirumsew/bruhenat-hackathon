@@ -226,74 +226,163 @@
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
+      const code = urlParams.get('code') || urlParams.get('ticket') || '';
+      const ref = urlParams.get('ref') || '';
 
       const loadingView = document.getElementById('loading-view');
       const contentView = document.getElementById('content-view');
       const errorView = document.getElementById('error-view');
 
-      if (!code) {
+      if (!code && !ref) {
+        // Fallback to last confirmed ticket in storage
+        const saved = localStorage.getItem('bruh_last_ticket') || sessionStorage.getItem('bruh_last_ticket');
+        if (saved) {
+          try {
+            renderTicket(JSON.parse(saved));
+            return;
+          } catch (e) {}
+        }
         loadingView.style.display = 'none';
         errorView.style.display = 'block';
         return;
       }
 
+      // Try 1: LocalStorage fast lookup
+      let ticketObj = null;
       try {
-        const res = await fetch(`/api/tickets/${encodeURIComponent(code)}`);
-        const data = await res.json();
+        if (ref) {
+          const stored = localStorage.getItem(`bruh_ticket_${ref}`);
+          if (stored) ticketObj = JSON.parse(stored);
+        }
+        if (!ticketObj && code) {
+          const stored = localStorage.getItem(`bruh_ticket_${code}`);
+          if (stored) ticketObj = JSON.parse(stored);
+        }
+        if (!ticketObj) {
+          const last = localStorage.getItem('bruh_last_ticket');
+          if (last) {
+            const parsed = JSON.parse(last);
+            if (parsed.referenceCode === ref || parsed.referenceCode === code || parsed.ticketId === code) {
+              ticketObj = parsed;
+            }
+          }
+        }
+      } catch (e) {}
 
+      // Try 2: Backend API lookup
+      if (!ticketObj && code) {
+        try {
+          const res = await fetch(`/api/tickets/${encodeURIComponent(code)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.data) {
+              const d = data.data;
+              ticketObj = {
+                ticketCode: d.ticketCode,
+                referenceCode: d.registration?.referenceCode || code,
+                fullName: d.attendee?.fullName || 'Participant',
+                pathway: d.registration?.pathway || 'INDIVIDUAL',
+                teamName: d.registration?.teamName,
+                discipline: d.attendee?.discipline || 'Innovator',
+                track: d.attendee?.preferredTrack || 'Innovation Track',
+                qrData: d.qrData
+              };
+            }
+          }
+        } catch (e) {}
+      }
+
+      // Try 3: Direct Supabase Database lookup
+      if (!ticketObj && window.getSupabaseClient) {
+        try {
+          const client = window.getSupabaseClient();
+          if (client) {
+            const targetVal = ref || code;
+            // Search by reference code or attendee ID
+            const { data: attList } = await client
+              .from('attendees')
+              .select('*, registrations(*)')
+              .or(`id.eq.${targetVal},registration_id.eq.${targetVal}`);
+            
+            if (attList && attList.length > 0) {
+              const att = attList[0];
+              ticketObj = {
+                ticketCode: att.id,
+                referenceCode: att.registrations?.reference_code || targetVal,
+                fullName: att.full_name,
+                pathway: att.registrations?.pathway || 'INDIVIDUAL',
+                teamName: att.registrations?.team_idea ? 'Innovation Team' : null,
+                discipline: att.discipline || 'Innovator',
+                track: att.preferred_track || 'Innovation Track'
+              };
+            }
+          }
+        } catch (e) {}
+      }
+
+      // Render if found
+      if (ticketObj) {
+        renderTicket(ticketObj);
+      } else {
         loadingView.style.display = 'none';
+        errorView.style.display = 'block';
+      }
 
-        if (res.ok && data.success && data.data) {
-          const t = data.data;
-          contentView.style.display = 'block';
+      function renderTicket(t) {
+        loadingView.style.display = 'none';
+        contentView.style.display = 'block';
 
-          document.getElementById('attendee-name').textContent = t.attendee.fullName;
-          document.getElementById('attendee-pathway').textContent = t.registration.teamName 
-            ? `Team: ${t.registration.teamName}`
-            : `${t.registration.pathway} Participant`;
+        const ticketCodeVal = t.ticketCode || t.ticketId || t.referenceCode;
+        const refVal = t.referenceCode || t.ref || 'BE-2026-IND-0000';
+        const nameVal = t.fullName || t.name || 'Participant';
+        const pathwayVal = t.teamName ? `Team: ${t.teamName}` : `${(t.pathway || 'INDIVIDUAL').toUpperCase()} Participant`;
+        const roleVal = t.discipline || t.role || 'Software Developer';
+        const trackVal = t.track || 'Her Safety, Our Innovation';
 
-          document.getElementById('qr-img').src = t.qrData;
-          document.getElementById('ticket-code').textContent = t.ticketCode;
-          document.getElementById('ticket-ref').textContent = t.registration.referenceCode;
-          document.getElementById('ticket-role').textContent = t.attendee.discipline;
-          document.getElementById('ticket-track').textContent = t.attendee.preferredTrack;
+        document.getElementById('attendee-name').textContent = nameVal;
+        document.getElementById('attendee-pathway').textContent = pathwayVal;
 
-          // Download Ticket
-          document.getElementById('btn-download').onclick = () => {
-            const txt = `
+        // QR Code generation
+        const qrUrl = t.qrData || `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(refVal + '|' + ticketCodeVal)}`;
+        const qrImg = document.getElementById('qr-img');
+        qrImg.src = qrUrl;
+        qrImg.alt = `BRUH-Enat QR Pass: ${refVal}`;
+
+        document.getElementById('ticket-code').textContent = ticketCodeVal;
+        document.getElementById('ticket-ref').textContent = refVal;
+        document.getElementById('ticket-role').textContent = roleVal;
+        document.getElementById('ticket-track').textContent = trackVal;
+
+        // Download Ticket (.txt)
+        document.getElementById('btn-download').onclick = () => {
+          const txt = `
 ============================================================
 BRUH-ENAT WOMEN'S TECH INNOVATION HACKATHON 2026
 OFFICIAL DIGITAL ENTRY TICKET
 ============================================================
-Ticket Code    : ${t.ticketCode}
-Reference Code : ${t.registration.referenceCode}
-Attendee Name  : ${t.attendee.fullName}
-Pathway        : ${t.registration.teamName ? 'Team: ' + t.registration.teamName : t.registration.pathway}
-Track          : ${t.attendee.preferredTrack}
-Status         : ${t.status}
+Ticket Code    : ${ticketCodeVal}
+Reference Code : ${refVal}
+Attendee Name  : ${nameVal}
+Pathway        : ${pathwayVal}
+Discipline     : ${roleVal}
+Track          : ${trackVal}
+Status         : CONFIRMED
 
 EVENT DETAILS:
 Sprint Date : Saturday, December 5, 2026
 Check-in    : 08:30 AM – 09:30 AM EAT
 Venue       : Capstone ALX Tech Hub, Lideta, Addis Ababa, Ethiopia
-Maps Link   : https://maps.app.goo.gl/XLH2PN6vTPyP2kP58
+Google Maps : https://maps.app.goo.gl/XLH2PN6vTPyP2kP58
 ============================================================`.trim();
 
-            const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Bruh-Enat-${t.ticketCode}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
-          };
-        } else {
-          errorView.style.display = 'block';
-        }
-      } catch (err) {
-        loadingView.style.display = 'none';
-        errorView.style.display = 'block';
+          const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Bruh-Enat-${refVal}-Pass.txt`;
+          a.click();
+          URL.revokeObjectURL(url);
+        };
       }
     });
   </script>

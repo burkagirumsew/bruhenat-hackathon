@@ -76,18 +76,69 @@ function populateAdminProfile(admin) {
 // Authentication Verification & Guard (Strict Session Enforcement & Max 2 Concurrency)
 let activeHeartbeatTimer = null;
 
+function getStoredAdminSession() {
+  // Check localStorage first
+  try {
+    const raw = localStorage.getItem('bruh_enat_admin_session');
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && s.expiresAt && Date.now() < s.expiresAt && (s.role === 'SUPER_ADMIN' || s.role === 'ADMIN')) {
+        return s;
+      }
+    }
+  } catch (e) {}
+
+  // Check sessionStorage next
+  try {
+    const raw = sessionStorage.getItem('bruh_enat_admin_session');
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && s.expiresAt && Date.now() < s.expiresAt && (s.role === 'SUPER_ADMIN' || s.role === 'ADMIN')) {
+        return s;
+      }
+    }
+  } catch (e) {}
+
+  // Check cookie fallback
+  try {
+    const match = document.cookie.match(/(?:^|;\s*)bruh_enat_admin_session=([^;]+)/);
+    if (match) {
+      const s = JSON.parse(decodeURIComponent(match[1]));
+      if (s && s.expiresAt && Date.now() < s.expiresAt && (s.role === 'SUPER_ADMIN' || s.role === 'ADMIN')) {
+        return s;
+      }
+    }
+  } catch (e) {}
+
+  return null;
+}
+
 async function checkAuth() {
   // 1. Check validated time-bounded cryptographic admin session
-  const sessionRaw = localStorage.getItem('bruh_enat_admin_session');
-  if (sessionRaw) {
+  const session = getStoredAdminSession();
+  if (session) {
+    // Keep storages synchronised across tab refreshes
     try {
-      const session = JSON.parse(sessionRaw);
-      if (session && session.expiresAt && Date.now() < session.expiresAt && session.role === 'SUPER_ADMIN') {
-        populateAdminProfile(session);
-        startAdminHeartbeat(session);
-        return true;
-      }
+      const json = JSON.stringify(session);
+      localStorage.setItem('bruh_enat_admin_session', json);
+      sessionStorage.setItem('bruh_enat_admin_session', json);
     } catch (e) {}
+
+    // Populate UI safely without throwing
+    try {
+      populateAdminProfile(session);
+    } catch (uiErr) {
+      console.warn('Admin profile population warning:', uiErr);
+    }
+
+    // Start background concurrency heartbeat safely
+    try {
+      startAdminHeartbeat(session);
+    } catch (hbErr) {
+      console.warn('Admin heartbeat startup warning:', hbErr);
+    }
+
+    return true;
   }
 
   // 2. Check Supabase auth session if explicit admin role metadata is present
@@ -95,32 +146,46 @@ async function checkAuth() {
     try {
       const client = window.getSupabaseClient();
       if (client) {
-        const { data: { session } } = await client.auth.getSession();
-        if (session && session.user && session.user.user_metadata && session.user.user_metadata.role === 'SUPER_ADMIN') {
+        const { data: { session: supaSession } } = await client.auth.getSession();
+        if (supaSession && supaSession.user && supaSession.user.user_metadata && 
+            (supaSession.user.user_metadata.role === 'SUPER_ADMIN' || supaSession.user.user_metadata.role === 'ADMIN')) {
           const admin = {
-            id: session.user.id,
-            sessionId: session.user.id,
-            fullName: session.user.user_metadata?.full_name || 'Hackathon Director',
-            email: session.user.email,
+            id: supaSession.user.id,
+            sessionId: supaSession.user.id,
+            fullName: supaSession.user.user_metadata?.full_name || 'Hackathon Director',
+            email: supaSession.user.email,
             role: 'SUPER_ADMIN',
             expiresAt: Date.now() + (2 * 60 * 60 * 1000)
           };
-          localStorage.setItem('bruh_enat_admin_session', JSON.stringify(admin));
-          localStorage.setItem('bruh_enat_admin_user', JSON.stringify(admin));
-          populateAdminProfile(admin);
-          startAdminHeartbeat(admin);
+          const json = JSON.stringify(admin);
+          try {
+            localStorage.setItem('bruh_enat_admin_session', json);
+            localStorage.setItem('bruh_enat_admin_user', json);
+            sessionStorage.setItem('bruh_enat_admin_session', json);
+          } catch (e) {}
+
+          try {
+            populateAdminProfile(admin);
+            startAdminHeartbeat(admin);
+          } catch (e) {}
           return true;
         }
       }
     } catch (e) {}
   }
 
-  // Clear unauthenticated / expired tokens
-  localStorage.removeItem('bruh_enat_admin_session');
-  localStorage.removeItem('bruh_enat_admin_user');
-  localStorage.removeItem('bruh_enat_admin_token');
+  // Unauthenticated / expired: clear stale storage keys
+  try {
+    localStorage.removeItem('bruh_enat_admin_session');
+    localStorage.removeItem('bruh_enat_admin_user');
+    localStorage.removeItem('bruh_enat_admin_token');
+    sessionStorage.removeItem('bruh_enat_admin_session');
+    sessionStorage.removeItem('bruh_enat_admin_user');
+    sessionStorage.removeItem('bruh_enat_admin_token');
+    document.cookie = 'bruh_enat_admin_session=; path=/; max-age=0';
+  } catch (e) {}
 
-  // Hard block: redirect to secure login
+  // Redirect to secure login
   window.location.href = '/admin/login';
   return false;
 }
@@ -162,7 +227,7 @@ function startAdminHeartbeat(session) {
       if (res.ok) {
         const list = await res.json();
         const now = Date.now();
-        const active = list.filter(s => (now - new Date(s.submitted_at).getTime()) < 65000);
+        const active = list.filter(s => (now - new Date(s.submitted_at).getTime()) < 60000);
         updateSessionBadge(Math.min(active.length, 2));
       }
     } catch (e) {}
@@ -171,11 +236,6 @@ function startAdminHeartbeat(session) {
   sendHeartbeat();
   if (activeHeartbeatTimer) clearInterval(activeHeartbeatTimer);
   activeHeartbeatTimer = setInterval(sendHeartbeat, 25000);
-
-  // Auto-release session slot when leaving page
-  window.addEventListener('beforeunload', () => {
-    releaseAdminSession(session);
-  });
 }
 
 function releaseAdminSession(session) {
@@ -2708,10 +2768,9 @@ window.triggerBulkSync = async function() {
 // Logout Handler
 document.getElementById('admin-logout-btn').addEventListener('click', async () => {
   try {
-    const sessionRaw = localStorage.getItem('bruh_enat_admin_session');
-    if (sessionRaw) {
+    const session = getStoredAdminSession();
+    if (session) {
       try {
-        const session = JSON.parse(sessionRaw);
         releaseAdminSession(session);
       } catch (e) {}
     }
@@ -2719,12 +2778,15 @@ document.getElementById('admin-logout-btn').addEventListener('click', async () =
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include'
-    });
+    }).catch(() => {});
   } finally {
-    localStorage.removeItem('bruh_enat_admin_session');
-    localStorage.removeItem('bruh_enat_admin_token');
-    localStorage.removeItem('bruh_enat_admin_user');
-    sessionStorage.clear();
+    try {
+      localStorage.removeItem('bruh_enat_admin_session');
+      localStorage.removeItem('bruh_enat_admin_token');
+      localStorage.removeItem('bruh_enat_admin_user');
+      sessionStorage.clear();
+      document.cookie = 'bruh_enat_admin_session=; path=/; max-age=0';
+    } catch (e) {}
     window.location.href = '/admin/login';
   }
 });

@@ -365,12 +365,16 @@
   }
 
   .partner-logo-box {
-    height: 56px;
-    padding: 4px 8px;
+    height: 60px;
+    padding: 3px 6px;
   }
 
   .hero-partner-logo {
-    max-height: 44px;
+    max-height: 52px;
+  }
+
+  .hero-partner-logo-mint {
+    max-height: 56px;
   }
 
   .partner-name {

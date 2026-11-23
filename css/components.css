@@ -1545,6 +1545,9 @@ body {
 .perk-icon-pilot {
   color: var(--color-amber-400);
 }
+.perk-icon-hub {
+  color: #38bdf8;
+}
 
 /* Minimal Prize Card (clean format fallback) */
 .prize-card.minimal {
@@ -3752,6 +3755,10 @@ body {
 
 [data-theme="light"] .perk-icon-pilot {
   color: #D97706;
+}
+
+[data-theme="light"] .perk-icon-hub {
+  color: #0284C7;
 }
 
 [data-theme="light"] .opp-card {

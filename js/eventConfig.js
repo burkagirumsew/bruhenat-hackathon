@@ -65,71 +65,52 @@ const EVENT_CONFIG = {
     ]
   },
 
-  // The 4 Innovation Tracks
+  // The 3 Innovation Tracks
   tracks: [
     {
       id: "track-01",
       number: "01",
-      title: "Safe Reporting & Digital Protection",
-      tagline: "Confidential, tamper-evident, and panic-resilient protection pathways.",
-      challenge: "Make reporting abuse safer, confidential, and accessible while eliminating digital footprints that could endanger the survivor.",
+      title: "Reporting GBV & Accessing Support",
+      tagline: "Secure, confidential reporting and multi-sectoral survivor support pathways.",
+      challenge: "How can technology help women safely report gender-based violence and get the support they need?",
       icon: "shield-check",
       color: "orange",
       ideas: [
-        "Secure digital reporting channels with zero local history or emergency disguised triggers",
-        "Encrypted incident documentation tools (audio, photo, timestamp proofs) with cloud vault protection",
-        "Step-by-step reporting guidance and legal rights education in plain language",
-        "Emergency panic buttons and low-bandwidth distress signal transmissions via SMS or USSD"
+        "Build secure and confidential GBV reporting platforms.",
+        "Develop digital tools connecting survivors to legal, healthcare, psychosocial, and protection services.",
+        "Create AI-powered assistants that guide women on where and how to seek help."
       ],
-      deliverableExpectation: "A functional mobile, web, or USSD prototype demonstrating end-to-end data encryption and strict survivor safety mechanisms."
+      deliverableExpectation: "A functional mobile, web, or USSD prototype demonstrating confidential reporting, referral connections, and survivor safety protocols."
     },
     {
       id: "track-02",
       number: "02",
-      title: "AI-Powered Information & Support",
-      tagline: "Culturally fluent, localized AI assistants bridging the knowledge divide.",
-      challenge: "Improve access to trusted, empathetic, and accurate information regarding rights, health, and emergency support in Ethiopian mother tongues.",
+      title: "Preventing GBV & Raising Awareness",
+      tagline: "Community education, multilingual awareness, and early risk intervention.",
+      challenge: "How can technology help prevent gender-based violence and educate communities?",
       icon: "bot",
       color: "amber",
       ideas: [
-        "AI-powered triage and emotional support assistants trained on verified trauma-informed protocols",
-        "Amharic, Afaan Oromoo, Tigrinya, and localized voice/text NLP conversational tools",
-        "Low-literacy and audio-first interfaces for rural and peri-urban communities",
-        "Context-aware guidance mapping users to immediate shelters, hotlines, and medical clinics"
+        "Develop interactive platforms that educate people about GBV, women's rights, and prevention.",
+        "Create AI-powered, multilingual tools that make reliable information accessible.",
+        "Build digital solutions that identify potential risks and support early intervention."
       ],
-      deliverableExpectation: "A localized conversational AI agent or interactive voice interface with robust guardrails against hallucinations and harmful advice."
+      deliverableExpectation: "An interactive educational platform or AI-assisted multilingual tool promoting preventive education and community awareness."
     },
     {
       id: "track-03",
       number: "03",
-      title: "Access to Support & Service Coordination",
-      tagline: "Connecting survivors to verified multi-sectoral care pipelines.",
-      challenge: "Help women rapidly discover and navigate trusted medical, psychosocial, legal, and shelter services across Ethiopian cities and regions.",
-      icon: "network",
-      color: "coral",
-      ideas: [
-        "Verified, crowdsourced & vetted directory of one-stop crisis centres and legal aid NGOs",
-        "Privacy-first, location-based service discovery that runs offline or on low-bandwidth networks",
-        "Inter-agency digital referral and case tracker that maintains absolute survivor anonymity",
-        "Coordination dashboard for healthcare workers, counsellors, and emergency responders"
-      ],
-      deliverableExpectation: "A responsive platform or referral workflow showcasing provider verification, privacy preservation, and offline resilience."
-    },
-    {
-      id: "track-04",
-      number: "04",
-      title: "Prevention, Awareness & Online Safety",
-      tagline: "Combating cyberstalking, harassment, and cultivating safe digital spaces.",
-      challenge: "Prevent violence before it occurs and actively address technology-facilitated gender-based violence (TFGBV) and digital harassment.",
+      title: "Protecting Women Online",
+      tagline: "Combating cyberstalking, online harassment, and digital violence.",
+      challenge: "How can technology make the digital world safer for women and girls?",
       icon: "lock",
       color: "emerald",
       ideas: [
-        "Early warning sign awareness and healthy relationship diagnostic tools for young women",
-        "Cyberstalking, non-consensual image sharing, and online harassment defense toolkits",
-        "Interactive gamified digital literacy curricula designed for schools and universities",
-        "AI-assisted sentiment and harassment detection for Ethiopian social media spaces"
+        "Develop solutions addressing cyberstalking, online harassment, non-consensual content sharing, and digital blackmail.",
+        "Build privacy-first communication tools and safe spaces for women.",
+        "Create AI-driven content moderation and threat detection tools tailored for local Ethiopian languages and contexts."
       ],
-      deliverableExpectation: "An awareness or intervention application focused on preventive education, digital self-defense, or toxic online behavior detection."
+      deliverableExpectation: "A digital security, threat detection, or privacy-enhancing solution safeguarding women and girls in online environments."
     }
   ],
 
@@ -179,35 +160,40 @@ const EVENT_CONFIG = {
       date: "Nov 30, 2026",
       time: "7:00 PM – 8:00 PM EAT",
       topic: "Understanding GBV, warning signs, survivor journeys, and support services",
-      platform: "Online via Zoom",
+      platform: "Online via Google Meet",
+      meetUrl: "https://meet.google.com/cxn-qqnk-fci",
       objective: "Foundational domain grounding with certified gender specialists and crisis counselors."
     },
     {
       date: "Dec 1, 2026",
       time: "7:00 PM – 8:00 PM EAT",
       topic: "Mapping survivor journeys and identifying service gaps",
-      platform: "Online via Zoom",
+      platform: "Online via Google Meet",
+      meetUrl: "https://meet.google.com/way-xzzu-xxn",
       objective: "Analyzing real friction points in current Ethiopian legal, medical, and shelter referral systems."
     },
     {
       date: "Dec 2, 2026",
       time: "7:00 PM – 8:00 PM EAT",
       topic: "Problem framing, responsible AI, research methods, and prototyping",
-      platform: "Online via Zoom",
+      platform: "Online via Google Meet",
+      meetUrl: "https://meet.google.com/ggk-tagu-gbi",
       objective: "Applying human-centred design, safe AI guardrails, prompt hygiene, and rapid prototyping tools."
     },
     {
       date: "Dec 3, 2026",
       time: "7:00 PM – 8:00 PM EAT",
       topic: "Participant matching and team formation",
-      platform: "Online via Zoom",
+      platform: "Online via Google Meet",
+      meetUrl: "https://meet.google.com/qhh-ypzi-nrx",
       objective: "Connecting solo applicants across tech, design, and impact disciplines into balanced 3–5 member squads."
     },
     {
       date: "Dec 4, 2026",
       time: "7:00 PM – 8:00 PM EAT",
       topic: "Pitch preparation and communicating impact",
-      platform: "Online via Zoom",
+      platform: "Online via Google Meet",
+      meetUrl: "https://meet.google.com/zmw-vbtc-khq",
       objective: "Mastering the 5-minute hackathon demo: storytelling, technical depth, and sustainability models."
     }
   ],
@@ -297,7 +283,8 @@ const EVENT_CONFIG = {
           "Direct entry into MiNT Ventures incubation track",
           "Access to initial financing opportunities through Enat Bank.",
           "Executive mentorship with UN Women & Enat Bank leadership",
-          "Pilot deployment consultation with government stakeholders"
+          "Pilot deployment consultation with government stakeholders",
+          "3 Months of ALX Hub Access"
         ]
       },
       {
@@ -305,14 +292,26 @@ const EVENT_CONFIG = {
         title: "2nd Place",
         amountETB: "150,000 ETB",
         featured: false,
-        perks: []
+        perks: [
+          "Direct entry into MiNT Ventures incubation track.",
+          "Access to initial financing opportunities through Enat Bank.",
+          "Executive mentorship with UN Women & Enat Bank leadership.",
+          "Pilot deployment consultation with government stakeholders.",
+          "3 Months of ALX Hub Access"
+        ]
       },
       {
         place: "3rd Place",
         title: "3rd Place",
         amountETB: "100,000 ETB",
         featured: false,
-        perks: []
+        perks: [
+          "Direct entry into MiNT Ventures incubation track.",
+          "Access to initial financing opportunities through Enat Bank.",
+          "Executive mentorship with UN Women & Enat Bank leadership.",
+          "Pilot deployment consultation with government stakeholders.",
+          "3 Months of ALX Hub Access"
+        ]
       }
     ],
     additionalOpportunities: [

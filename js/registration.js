@@ -130,9 +130,19 @@ function initDynamicTeamRoster() {
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Phone Number (Optional)</label>
-          <input type="tel" class="form-input member-phone" placeholder="+251 9XX XXX XXX">
+          <label class="form-label">ALX Affiliation <span class="req-star">*</span></label>
+          <select class="form-select member-alx-affiliation" required>
+            <option value="">Select ALX Affiliation</option>
+            <option value="ALX Learner">ALX Learner</option>
+            <option value="ALX Graduate">ALX Graduate</option>
+            <option value="Started but Didn't Complete">Started but Didn't Complete</option>
+            <option value="Neither">Neither</option>
+          </select>
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number (Optional)</label>
+        <input type="tel" class="form-input member-phone" placeholder="+251 9XX XXX XXX">
       </div>
     `;
 
@@ -319,7 +329,7 @@ function validateForm(form, pathway) {
     const name = form.querySelector('#ind-name')?.value.trim();
     const email = form.querySelector('#ind-email')?.value.trim();
     const phone = form.querySelector('#ind-phone')?.value.trim();
-    const discipline = form.querySelector('#ind-discipline')?.value;
+    const alxAffiliation = form.querySelector('#ind-alx-affiliation')?.value;
     const track = form.querySelector('#ind-track')?.value;
     const isWoman = form.querySelector('#ind-check-eligibility')?.checked;
     const safetyCheck = form.querySelector('#ind-check-safety')?.checked;
@@ -327,7 +337,7 @@ function validateForm(form, pathway) {
     if (!name) errors.push("Full Name is required.");
     if (!email || !isValidEmail(email)) errors.push("A valid Email Address is required.");
     if (!phone) errors.push("Phone Number is required.");
-    if (!discipline) errors.push("Please select your Primary Discipline.");
+    if (!alxAffiliation) errors.push("Please select your ALX Affiliation.");
     if (!track) errors.push("Please select your Preferred Innovation Track.");
     if (!isWoman) errors.push("You must confirm eligibility (Women participants only).");
     if (!safetyCheck) errors.push("You must agree to the Synthetic Data and Survivor Privacy Pledge.");
@@ -338,6 +348,7 @@ function validateForm(form, pathway) {
     const leaderEmail = form.querySelector('#leader-email')?.value.trim();
     const leaderPhone = form.querySelector('#leader-phone')?.value.trim();
     const leaderRole = form.querySelector('#leader-role')?.value;
+    const leaderAlx = form.querySelector('#leader-alx-affiliation')?.value;
     const isWomenTeam = form.querySelector('#team-check-eligibility')?.checked;
     const safetyCheck = form.querySelector('#team-check-safety')?.checked;
 
@@ -347,6 +358,7 @@ function validateForm(form, pathway) {
     if (!leaderEmail || !isValidEmail(leaderEmail)) errors.push("Valid Team Leader Email is required.");
     if (!leaderPhone) errors.push("Team Leader Phone is required.");
     if (!leaderRole) errors.push("Team Leader Role is required.");
+    if (!leaderAlx) errors.push("Team Leader ALX Affiliation is required.");
 
     // Validate additional team members (minimum 2 additional members required to make 3)
     const memberEntries = form.querySelectorAll('.team-member-entry');
@@ -358,10 +370,12 @@ function validateForm(form, pathway) {
       const mName = entry.querySelector('.member-name')?.value.trim();
       const mEmail = entry.querySelector('.member-email')?.value.trim();
       const mRole = entry.querySelector('.member-role')?.value;
+      const mAlx = entry.querySelector('.member-alx-affiliation')?.value;
 
       if (!mName) errors.push(`Member ${idx + 2}: Full Name is required.`);
       if (!mEmail || !isValidEmail(mEmail)) errors.push(`Member ${idx + 2}: Valid Email is required.`);
       if (!mRole) errors.push(`Member ${idx + 2}: Primary Discipline is required.`);
+      if (!mAlx) errors.push(`Member ${idx + 2}: ALX Affiliation is required.`);
     });
 
     if (!isWomenTeam) errors.push("You must confirm that all team members identify as women.");
@@ -388,11 +402,8 @@ function compileFormData(form, pathway) {
         fullName: form.querySelector('#ind-name')?.value.trim(),
         email: form.querySelector('#ind-email')?.value.trim(),
         phone: form.querySelector('#ind-phone')?.value.trim(),
-        city: form.querySelector('#ind-city')?.value.trim() || 'Addis Ababa',
-        discipline: form.querySelector('#ind-discipline')?.value,
-        experienceLevel: form.querySelector('#ind-experience')?.value,
+        alxAffiliation: form.querySelector('#ind-alx-affiliation')?.value,
         preferredTrack: form.querySelector('#ind-track')?.value,
-        skillsSummary: form.querySelector('#ind-skills')?.value.trim() || 'None specified',
         consentTeamMatching: form.querySelector('#ind-check-matching')?.checked || false,
         eligibilityConfirmed: Boolean(form.querySelector('#ind-check-eligibility')?.checked),
         safetyPledgeConfirmed: Boolean(form.querySelector('#ind-check-safety')?.checked)
@@ -408,6 +419,7 @@ function compileFormData(form, pathway) {
         fullName: entry.querySelector('.member-name')?.value.trim(),
         email: entry.querySelector('.member-email')?.value.trim(),
         role: entry.querySelector('.member-role')?.value,
+        alxAffiliation: entry.querySelector('.member-alx-affiliation')?.value,
         phone: entry.querySelector('.member-phone')?.value.trim() || ''
       });
     });
@@ -419,12 +431,12 @@ function compileFormData(form, pathway) {
       team: {
         teamName: form.querySelector('#team-name')?.value.trim(),
         track: form.querySelector('#team-track')?.value,
-        solutionConcept: form.querySelector('#team-idea')?.value.trim() || 'General exploration',
         leader: {
           fullName: form.querySelector('#leader-name')?.value.trim(),
           email: form.querySelector('#leader-email')?.value.trim(),
           phone: form.querySelector('#leader-phone')?.value.trim(),
-          role: form.querySelector('#leader-role')?.value
+          role: form.querySelector('#leader-role')?.value,
+          alxAffiliation: form.querySelector('#leader-alx-affiliation')?.value
         },
         members: membersList,
         totalTeamSize: membersList.length + 1,

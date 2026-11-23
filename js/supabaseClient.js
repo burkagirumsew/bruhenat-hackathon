@@ -43,10 +43,11 @@
     const email = (applicant.email || '').trim().toLowerCase();
     const phone = (applicant.phone || '').trim();
     const city = (applicant.city || 'Addis Ababa').trim();
-    const discipline = (applicant.discipline || 'Software Developer').trim();
+    const alxAffiliation = (applicant.alxAffiliation || '').trim();
+    const discipline = alxAffiliation ? `ALX: ${alxAffiliation}` : (applicant.discipline || 'General Participant').trim();
     const experienceLevel = (applicant.experienceLevel || applicant.experience || 'Intermediate').trim();
-    const preferredTrack = (applicant.preferredTrack || applicant.track || 'Confidential Reporting & Whistleblower Protection').trim();
-    const skills = (applicant.skills || applicant.skillsSummary || 'None specified').trim();
+    const preferredTrack = (applicant.preferredTrack || applicant.track || 'Reporting GBV & Accessing Support').trim();
+    const skills = alxAffiliation ? `ALX Affiliation: ${alxAffiliation}` : (applicant.skills || applicant.skillsSummary || 'None specified').trim();
 
     // 1. Immediately persist to localStorage for offline security
     try {
@@ -61,6 +62,8 @@
           pathway: 'INDIVIDUAL',
           track: preferredTrack,
           discipline,
+          alxAffiliation,
+          skills,
           submittedAt: now
         });
         localStorage.setItem('bruh_enat_submitted_roster', JSON.stringify(list));
@@ -196,6 +199,7 @@
     try {
       if (typeof localStorage !== 'undefined') {
         const list = JSON.parse(localStorage.getItem('bruh_enat_submitted_roster') || '[]');
+        const leaderAlx = (leader.alxAffiliation || '').trim();
         list.push({
           id: leaderId,
           referenceCode: refCode,
@@ -205,6 +209,14 @@
           pathway: 'TEAM',
           teamName: teamName,
           track: track,
+          discipline: leader.role || 'Team Leader',
+          alxAffiliation: leaderAlx,
+          members: members.map(m => ({
+            fullName: m.fullName,
+            email: m.email,
+            role: m.role,
+            alxAffiliation: m.alxAffiliation
+          })),
           submittedAt: now
         });
         localStorage.setItem('bruh_enat_submitted_roster', JSON.stringify(list));
@@ -214,6 +226,10 @@
     // Dispatch to Supabase and await confirmation
     try {
       const client = typeof window !== 'undefined' && window.getSupabaseClient ? window.getSupabaseClient() : null;
+      const leaderAlx = (leader.alxAffiliation || '').trim();
+      const leaderSkills = leaderAlx ? `ALX Affiliation: ${leaderAlx}` : 'None specified';
+      const leaderDiscipline = leader.role || leader.discipline || (leaderAlx ? `ALX: ${leaderAlx}` : 'Team Leader');
+
       if (client) {
         const { error: regErr } = await client.from('registrations').insert({
           id: regId,
@@ -250,8 +266,9 @@
           full_name: (leader.fullName || 'Team Leader').trim(),
           email: (leader.email || '').trim().toLowerCase(),
           phone: (leader.phone || '').trim(),
-          discipline: leader.discipline || leader.role || 'Team Leader',
+          discipline: leaderDiscipline,
           preferred_track: track,
+          skills: leaderSkills,
           is_team_leader: true,
           email_verified: true,
           created_at: now
@@ -264,6 +281,10 @@
         // Insert additional team members
         for (const m of members) {
           const mAttId = generateId('att');
+          const mAlx = (m.alxAffiliation || '').trim();
+          const mSkills = mAlx ? `ALX Affiliation: ${mAlx}` : 'None specified';
+          const mDiscipline = m.role || (mAlx ? `ALX: ${mAlx}` : 'Team Member');
+
           await client.from('attendees').insert({
             id: mAttId,
             registration_id: regId,
@@ -271,8 +292,9 @@
             full_name: (m.fullName || 'Team Member').trim(),
             email: (m.email || '').trim().toLowerCase(),
             phone: (m.phone || '').trim(),
-            discipline: m.role || 'Team Member',
+            discipline: mDiscipline,
             preferred_track: track,
+            skills: mSkills,
             is_team_leader: false,
             email_verified: true,
             created_at: now
@@ -326,13 +348,40 @@
             full_name: (leader.fullName || 'Team Leader').trim(),
             email: (leader.email || '').trim().toLowerCase(),
             phone: (leader.phone || '').trim(),
-            discipline: leader.discipline || leader.role || 'Team Leader',
+            discipline: leaderDiscipline,
             preferred_track: track,
+            skills: leaderSkills,
             is_team_leader: true,
             email_verified: true,
             created_at: now
           })
         });
+
+        for (const m of members) {
+          const mAttId = generateId('att');
+          const mAlx = (m.alxAffiliation || '').trim();
+          const mSkills = mAlx ? `ALX Affiliation: ${mAlx}` : 'None specified';
+          const mDiscipline = m.role || (mAlx ? `ALX: ${mAlx}` : 'Team Member');
+
+          await fetch(`${SUPABASE_CONFIG.restUrl}/attendees`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              id: mAttId,
+              registration_id: regId,
+              team_id: teamId,
+              full_name: (m.fullName || 'Team Member').trim(),
+              email: (m.email || '').trim().toLowerCase(),
+              phone: (m.phone || '').trim(),
+              discipline: mDiscipline,
+              preferred_track: track,
+              skills: mSkills,
+              is_team_leader: false,
+              email_verified: true,
+              created_at: now
+            })
+          });
+        }
       }
     } catch (netErr) {
       console.error('Team registration backend write failed:', netErr);

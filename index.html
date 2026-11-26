@@ -316,6 +316,12 @@
                 </div>
                 <span class="partner-name">UN Women</span>
               </div>
+              <div class="partner-emblem-badge">
+                <div class="partner-logo-box">
+                  <img src="assets/partners/giz-awe.png" alt="GIZ - German Cooperation / Agency for Business and Economic Development" class="hero-partner-logo">
+                </div>
+                <span class="partner-name">GIZ</span>
+              </div>
             </div>
           </div>
 
@@ -1970,6 +1976,17 @@
                 <input type="tel" id="ind-phone" class="form-input" placeholder="+251 9XX XXX XXX" required>
               </div>
               <div class="form-group">
+                <label class="form-label" for="ind-gender">Gender <span class="req-star">*</span></label>
+                <select id="ind-gender" class="form-select" required>
+                  <option value="">Select Gender</option>
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
                 <label class="form-label" for="ind-alx-affiliation">ALX Affiliation <span class="req-star">*</span></label>
                 <select id="ind-alx-affiliation" class="form-select" required>
                   <option value="">Select ALX Affiliation</option>
@@ -1979,16 +1996,15 @@
                   <option value="Neither">Neither</option>
                 </select>
               </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="ind-track">Preferred Innovation Track <span class="req-star">*</span></label>
-              <select id="ind-track" class="form-select" required>
-                <option value="">Choose the track you wish to solve</option>
-                <option value="Track 01: Reporting GBV & Accessing Support">Track 01: Reporting GBV &amp; Accessing Support</option>
-                <option value="Track 02: Preventing GBV & Raising Awareness">Track 02: Preventing GBV &amp; Raising Awareness</option>
-                <option value="Track 03: Protecting Women Online">Track 03: Protecting Women Online</option>
-              </select>
+              <div class="form-group">
+                <label class="form-label" for="ind-track">Preferred Innovation Track <span class="req-star">*</span></label>
+                <select id="ind-track" class="form-select" required>
+                  <option value="">Choose the track you wish to solve</option>
+                  <option value="Track 01: Reporting GBV & Accessing Support">Track 01: Reporting GBV &amp; Accessing Support</option>
+                  <option value="Track 02: Preventing GBV & Raising Awareness">Track 02: Preventing GBV &amp; Raising Awareness</option>
+                  <option value="Track 03: Protecting Women Online">Track 03: Protecting Women Online</option>
+                </select>
+              </div>
             </div>
 
             <!-- Matching Consent -->
@@ -2089,15 +2105,25 @@
                 </div>
               </div>
 
-              <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label" for="leader-alx-affiliation">Leader ALX Affiliation <span class="req-star">*</span></label>
-                <select id="leader-alx-affiliation" class="form-select" required>
-                  <option value="">Select ALX Affiliation</option>
-                  <option value="ALX Learner">ALX Learner</option>
-                  <option value="ALX Graduate">ALX Graduate</option>
-                  <option value="Started but Didn't Complete">Started but Didn't Complete</option>
-                  <option value="Neither">Neither</option>
-                </select>
+              <div class="form-grid-2">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" for="leader-alx-affiliation">Leader ALX Affiliation <span class="req-star">*</span></label>
+                  <select id="leader-alx-affiliation" class="form-select" required>
+                    <option value="">Select ALX Affiliation</option>
+                    <option value="ALX Learner">ALX Learner</option>
+                    <option value="ALX Graduate">ALX Graduate</option>
+                    <option value="Started but Didn't Complete">Started but Didn't Complete</option>
+                    <option value="Neither">Neither</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" for="leader-gender">Leader Gender <span class="req-star">*</span></label>
+                  <select id="leader-gender" class="form-select" required>
+                    <option value="">Select Gender</option>
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -2148,9 +2174,19 @@
                     </select>
                   </div>
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Phone Number (Optional)</label>
-                  <input type="tel" class="form-input member-phone" placeholder="+251 9XX XXX XXX">
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Gender <span class="req-star">*</span></label>
+                    <select class="form-select member-gender" required>
+                      <option value="">Select Gender</option>
+                      <option value="Female">Female</option>
+                      <option value="Male">Male</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Phone Number (Optional)</label>
+                    <input type="tel" class="form-input member-phone" placeholder="+251 9XX XXX XXX">
+                  </div>
                 </div>
               </div>
 
@@ -2198,9 +2234,19 @@
                     </select>
                   </div>
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Phone Number (Optional)</label>
-                  <input type="tel" class="form-input member-phone" placeholder="+251 9XX XXX XXX">
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Gender <span class="req-star">*</span></label>
+                    <select class="form-select member-gender" required>
+                      <option value="">Select Gender</option>
+                      <option value="Female">Female</option>
+                      <option value="Male">Male</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Phone Number (Optional)</label>
+                    <input type="tel" class="form-input member-phone" placeholder="+251 9XX XXX XXX">
+                  </div>
                 </div>
               </div>
 
@@ -2468,6 +2514,7 @@
             <li><a href="https://www.enatbanksc.com" target="_blank" rel="noopener noreferrer">Enat Bank</a></li>
             <li><a href="https://mint.gov.et" target="_blank" rel="noopener noreferrer">MiNT Ethiopia</a></li>
             <li><a href="https://mols.gov.et" target="_blank" rel="noopener noreferrer">Ministry of Labour &amp; Skills</a></li>
+            <li><a href="https://www.giz.de" target="_blank" rel="noopener noreferrer">GIZ</a></li>
           </ul>
         </div>
 

@@ -28,6 +28,41 @@
     return `${prefix}-${randNum}`;
   }
 
+  async function insertAttendeeWithGenderFallback(client, record, gender) {
+    const fullRecord = gender ? { ...record, gender } : { ...record };
+    let { error } = await client.from('attendees').insert(fullRecord);
+    if (error && error.message && error.message.toLowerCase().includes('gender')) {
+      console.warn('gender column missing in Supabase attendees table, proceeding with skills fallback:', error.message);
+      const res = await client.from('attendees').insert(record);
+      error = res.error;
+    }
+    return error;
+  }
+
+  async function postAttendeeWithGenderFallback(restUrl, headers, record, gender) {
+    const fullRecord = gender ? { ...record, gender } : { ...record };
+    let res = await fetch(`${restUrl}/attendees`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(fullRecord)
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      if (errData.message && errData.message.toLowerCase().includes('gender')) {
+        res = await fetch(`${restUrl}/attendees`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(record)
+        });
+      }
+      if (!res.ok) {
+        const finalErr = await res.json().catch(() => ({}));
+        throw new Error(finalErr.message || `Database error (${res.status})`);
+      }
+    }
+    return res;
+  }
+
   /**
    * Submit Individual Registration
    * Accurately creates confirmed reference code and awaits Supabase sync.
@@ -42,12 +77,17 @@
     const fullName = (applicant.fullName || applicant.name || '').trim();
     const email = (applicant.email || '').trim().toLowerCase();
     const phone = (applicant.phone || '').trim();
+    const gender = (applicant.gender || 'Female').trim();
     const city = (applicant.city || 'Addis Ababa').trim();
     const alxAffiliation = (applicant.alxAffiliation || '').trim();
     const discipline = alxAffiliation ? `ALX: ${alxAffiliation}` : (applicant.discipline || 'General Participant').trim();
     const experienceLevel = (applicant.experienceLevel || applicant.experience || 'Intermediate').trim();
     const preferredTrack = (applicant.preferredTrack || applicant.track || 'Reporting GBV & Accessing Support').trim();
-    const skills = alxAffiliation ? `ALX Affiliation: ${alxAffiliation}` : (applicant.skills || applicant.skillsSummary || 'None specified').trim();
+    const skillsParts = [];
+    if (gender) skillsParts.push(`Gender: ${gender}`);
+    if (alxAffiliation) skillsParts.push(`ALX Affiliation: ${alxAffiliation}`);
+    if (applicant.skills && applicant.skills !== 'None specified') skillsParts.push(applicant.skills);
+    const skills = skillsParts.length ? skillsParts.join(' | ') : `Gender: ${gender}`;
 
     // 1. Immediately persist to localStorage for offline security
     try {
@@ -59,6 +99,7 @@
           fullName,
           email,
           phone,
+          gender,
           pathway: 'INDIVIDUAL',
           track: preferredTrack,
           discipline,
@@ -89,7 +130,7 @@
           throw new Error(regErr.message || 'Database registration error');
         }
 
-        const { error: attErr } = await client.from('attendees').insert({
+        const baseAttendeeRecord = {
           id: attId,
           registration_id: regId,
           full_name: fullName,
@@ -107,7 +148,9 @@
           email_verified: true,
           created_at: now,
           updated_at: now
-        });
+        };
+
+        const attErr = await insertAttendeeWithGenderFallback(client, baseAttendeeRecord, gender);
         if (attErr) {
           console.error('Supabase attendee insert error:', attErr);
           throw new Error(attErr.message || 'Database attendee error');
@@ -135,25 +178,20 @@
           throw new Error(errData.message || `Database error (${regRes.status})`);
         }
 
-        const attRes = await fetch(`${SUPABASE_CONFIG.restUrl}/attendees`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            id: attId,
-            registration_id: regId,
-            full_name: fullName,
-            email: email,
-            phone: phone,
-            discipline: discipline,
-            preferred_track: preferredTrack,
-            email_verified: true,
-            created_at: now
-          })
-        });
-        if (!attRes.ok) {
-          const errData = await attRes.json().catch(() => ({}));
-          throw new Error(errData.message || `Database error (${attRes.status})`);
-        }
+        const baseAttendeePayload = {
+          id: attId,
+          registration_id: regId,
+          full_name: fullName,
+          email: email,
+          phone: phone,
+          discipline: discipline,
+          preferred_track: preferredTrack,
+          skills: skills,
+          email_verified: true,
+          created_at: now
+        };
+
+        await postAttendeeWithGenderFallback(SUPABASE_CONFIG.restUrl, headers, baseAttendeePayload, gender);
       }
     } catch (netErr) {
       console.error('Registration backend write failed:', netErr);
@@ -200,12 +238,14 @@
       if (typeof localStorage !== 'undefined') {
         const list = JSON.parse(localStorage.getItem('bruh_enat_submitted_roster') || '[]');
         const leaderAlx = (leader.alxAffiliation || '').trim();
+        const leaderGender = (leader.gender || 'Female').trim();
         list.push({
           id: leaderId,
           referenceCode: refCode,
           fullName: leader.fullName || 'Team Leader',
           email: leader.email || '',
           phone: leader.phone || '',
+          gender: leaderGender,
           pathway: 'TEAM',
           teamName: teamName,
           track: track,
@@ -215,6 +255,7 @@
             fullName: m.fullName,
             email: m.email,
             role: m.role,
+            gender: m.gender || 'Female',
             alxAffiliation: m.alxAffiliation
           })),
           submittedAt: now
@@ -227,7 +268,11 @@
     try {
       const client = typeof window !== 'undefined' && window.getSupabaseClient ? window.getSupabaseClient() : null;
       const leaderAlx = (leader.alxAffiliation || '').trim();
-      const leaderSkills = leaderAlx ? `ALX Affiliation: ${leaderAlx}` : 'None specified';
+      const leaderGender = (leader.gender || 'Female').trim();
+      const leaderSkillsParts = [];
+      if (leaderGender) leaderSkillsParts.push(`Gender: ${leaderGender}`);
+      if (leaderAlx) leaderSkillsParts.push(`ALX Affiliation: ${leaderAlx}`);
+      const leaderSkills = leaderSkillsParts.length ? leaderSkillsParts.join(' | ') : `Gender: ${leaderGender}`;
       const leaderDiscipline = leader.role || leader.discipline || (leaderAlx ? `ALX: ${leaderAlx}` : 'Team Leader');
 
       if (client) {
@@ -259,7 +304,7 @@
         }
 
         // Insert Leader into attendees
-        const { error: leaderErr } = await client.from('attendees').insert({
+        const leaderRecord = {
           id: leaderId,
           registration_id: regId,
           team_id: teamId,
@@ -272,7 +317,8 @@
           is_team_leader: true,
           email_verified: true,
           created_at: now
-        });
+        };
+        const leaderErr = await insertAttendeeWithGenderFallback(client, leaderRecord, leaderGender);
         if (leaderErr) {
           console.error('Supabase leader insert error:', leaderErr);
           throw new Error(leaderErr.message || 'Database leader error');
@@ -282,10 +328,14 @@
         for (const m of members) {
           const mAttId = generateId('att');
           const mAlx = (m.alxAffiliation || '').trim();
-          const mSkills = mAlx ? `ALX Affiliation: ${mAlx}` : 'None specified';
+          const mGender = (m.gender || 'Female').trim();
+          const mSkillsParts = [];
+          if (mGender) mSkillsParts.push(`Gender: ${mGender}`);
+          if (mAlx) mSkillsParts.push(`ALX Affiliation: ${mAlx}`);
+          const mSkills = mSkillsParts.length ? mSkillsParts.join(' | ') : `Gender: ${mGender}`;
           const mDiscipline = m.role || (mAlx ? `ALX: ${mAlx}` : 'Team Member');
 
-          await client.from('attendees').insert({
+          const memberRecord = {
             id: mAttId,
             registration_id: regId,
             team_id: teamId,
@@ -298,7 +348,8 @@
             is_team_leader: false,
             email_verified: true,
             created_at: now
-          });
+          };
+          await insertAttendeeWithGenderFallback(client, memberRecord, mGender);
         }
       } else {
         // Direct REST fallback
@@ -338,49 +389,47 @@
           })
         });
 
-        await fetch(`${SUPABASE_CONFIG.restUrl}/attendees`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            id: leaderId,
-            registration_id: regId,
-            team_id: teamId,
-            full_name: (leader.fullName || 'Team Leader').trim(),
-            email: (leader.email || '').trim().toLowerCase(),
-            phone: (leader.phone || '').trim(),
-            discipline: leaderDiscipline,
-            preferred_track: track,
-            skills: leaderSkills,
-            is_team_leader: true,
-            email_verified: true,
-            created_at: now
-          })
-        });
+        const leaderPayload = {
+          id: leaderId,
+          registration_id: regId,
+          team_id: teamId,
+          full_name: (leader.fullName || 'Team Leader').trim(),
+          email: (leader.email || '').trim().toLowerCase(),
+          phone: (leader.phone || '').trim(),
+          discipline: leaderDiscipline,
+          preferred_track: track,
+          skills: leaderSkills,
+          is_team_leader: true,
+          email_verified: true,
+          created_at: now
+        };
+        await postAttendeeWithGenderFallback(SUPABASE_CONFIG.restUrl, headers, leaderPayload, leaderGender);
 
         for (const m of members) {
           const mAttId = generateId('att');
           const mAlx = (m.alxAffiliation || '').trim();
-          const mSkills = mAlx ? `ALX Affiliation: ${mAlx}` : 'None specified';
+          const mGender = (m.gender || 'Female').trim();
+          const mSkillsParts = [];
+          if (mGender) mSkillsParts.push(`Gender: ${mGender}`);
+          if (mAlx) mSkillsParts.push(`ALX Affiliation: ${mAlx}`);
+          const mSkills = mSkillsParts.length ? mSkillsParts.join(' | ') : `Gender: ${mGender}`;
           const mDiscipline = m.role || (mAlx ? `ALX: ${mAlx}` : 'Team Member');
 
-          await fetch(`${SUPABASE_CONFIG.restUrl}/attendees`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-              id: mAttId,
-              registration_id: regId,
-              team_id: teamId,
-              full_name: (m.fullName || 'Team Member').trim(),
-              email: (m.email || '').trim().toLowerCase(),
-              phone: (m.phone || '').trim(),
-              discipline: mDiscipline,
-              preferred_track: track,
-              skills: mSkills,
-              is_team_leader: false,
-              email_verified: true,
-              created_at: now
-            })
-          });
+          const memberPayload = {
+            id: mAttId,
+            registration_id: regId,
+            team_id: teamId,
+            full_name: (m.fullName || 'Team Member').trim(),
+            email: (m.email || '').trim().toLowerCase(),
+            phone: (m.phone || '').trim(),
+            discipline: mDiscipline,
+            preferred_track: track,
+            skills: mSkills,
+            is_team_leader: false,
+            email_verified: true,
+            created_at: now
+          };
+          await postAttendeeWithGenderFallback(SUPABASE_CONFIG.restUrl, headers, memberPayload, mGender);
         }
       }
     } catch (netErr) {

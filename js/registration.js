@@ -140,9 +140,19 @@ function initDynamicTeamRoster() {
           </select>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Phone Number (Optional)</label>
-        <input type="tel" class="form-input member-phone" placeholder="+251 9XX XXX XXX">
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Gender <span class="req-star">*</span></label>
+          <select class="form-select member-gender" required>
+            <option value="">Select Gender</option>
+            <option value="Female">Female</option>
+            <option value="Male">Male</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number (Optional)</label>
+          <input type="tel" class="form-input member-phone" placeholder="+251 9XX XXX XXX">
+        </div>
       </div>
     `;
 
@@ -329,6 +339,7 @@ function validateForm(form, pathway) {
     const name = form.querySelector('#ind-name')?.value.trim();
     const email = form.querySelector('#ind-email')?.value.trim();
     const phone = form.querySelector('#ind-phone')?.value.trim();
+    const gender = form.querySelector('#ind-gender')?.value;
     const alxAffiliation = form.querySelector('#ind-alx-affiliation')?.value;
     const track = form.querySelector('#ind-track')?.value;
     const isWoman = form.querySelector('#ind-check-eligibility')?.checked;
@@ -337,6 +348,7 @@ function validateForm(form, pathway) {
     if (!name) errors.push("Full Name is required.");
     if (!email || !isValidEmail(email)) errors.push("A valid Email Address is required.");
     if (!phone) errors.push("Phone Number is required.");
+    if (!gender) errors.push("Please select your Gender.");
     if (!alxAffiliation) errors.push("Please select your ALX Affiliation.");
     if (!track) errors.push("Please select your Preferred Innovation Track.");
     if (!isWoman) errors.push("You must confirm eligibility (Women participants only).");
@@ -348,6 +360,7 @@ function validateForm(form, pathway) {
     const leaderEmail = form.querySelector('#leader-email')?.value.trim();
     const leaderPhone = form.querySelector('#leader-phone')?.value.trim();
     const leaderRole = form.querySelector('#leader-role')?.value;
+    const leaderGender = form.querySelector('#leader-gender')?.value;
     const leaderAlx = form.querySelector('#leader-alx-affiliation')?.value;
     const isWomenTeam = form.querySelector('#team-check-eligibility')?.checked;
     const safetyCheck = form.querySelector('#team-check-safety')?.checked;
@@ -358,6 +371,7 @@ function validateForm(form, pathway) {
     if (!leaderEmail || !isValidEmail(leaderEmail)) errors.push("Valid Team Leader Email is required.");
     if (!leaderPhone) errors.push("Team Leader Phone is required.");
     if (!leaderRole) errors.push("Team Leader Role is required.");
+    if (!leaderGender) errors.push("Team Leader Gender is required.");
     if (!leaderAlx) errors.push("Team Leader ALX Affiliation is required.");
 
     // Validate additional team members (minimum 2 additional members required to make 3)
@@ -370,11 +384,13 @@ function validateForm(form, pathway) {
       const mName = entry.querySelector('.member-name')?.value.trim();
       const mEmail = entry.querySelector('.member-email')?.value.trim();
       const mRole = entry.querySelector('.member-role')?.value;
+      const mGender = entry.querySelector('.member-gender')?.value;
       const mAlx = entry.querySelector('.member-alx-affiliation')?.value;
 
       if (!mName) errors.push(`Member ${idx + 2}: Full Name is required.`);
       if (!mEmail || !isValidEmail(mEmail)) errors.push(`Member ${idx + 2}: Valid Email is required.`);
       if (!mRole) errors.push(`Member ${idx + 2}: Primary Discipline is required.`);
+      if (!mGender) errors.push(`Member ${idx + 2}: Gender is required.`);
       if (!mAlx) errors.push(`Member ${idx + 2}: ALX Affiliation is required.`);
     });
 
@@ -402,6 +418,7 @@ function compileFormData(form, pathway) {
         fullName: form.querySelector('#ind-name')?.value.trim(),
         email: form.querySelector('#ind-email')?.value.trim(),
         phone: form.querySelector('#ind-phone')?.value.trim(),
+        gender: form.querySelector('#ind-gender')?.value,
         alxAffiliation: form.querySelector('#ind-alx-affiliation')?.value,
         preferredTrack: form.querySelector('#ind-track')?.value,
         consentTeamMatching: form.querySelector('#ind-check-matching')?.checked || false,
@@ -419,6 +436,7 @@ function compileFormData(form, pathway) {
         fullName: entry.querySelector('.member-name')?.value.trim(),
         email: entry.querySelector('.member-email')?.value.trim(),
         role: entry.querySelector('.member-role')?.value,
+        gender: entry.querySelector('.member-gender')?.value,
         alxAffiliation: entry.querySelector('.member-alx-affiliation')?.value,
         phone: entry.querySelector('.member-phone')?.value.trim() || ''
       });
@@ -436,6 +454,7 @@ function compileFormData(form, pathway) {
           email: form.querySelector('#leader-email')?.value.trim(),
           phone: form.querySelector('#leader-phone')?.value.trim(),
           role: form.querySelector('#leader-role')?.value,
+          gender: form.querySelector('#leader-gender')?.value,
           alxAffiliation: form.querySelector('#leader-alx-affiliation')?.value
         },
         members: membersList,

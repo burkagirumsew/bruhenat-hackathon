@@ -651,6 +651,14 @@ function renderPagination(currentPage, totalPages) {
   }
 }
 
+function getAttendeeGender(a) {
+  if (a.gender) return a.gender;
+  const skillsStr = a.skills || '';
+  const match = skillsStr.match(/Gender:\s*(Female|Male)/i);
+  if (match) return match[1];
+  return '';
+}
+
 // Render a single attendee row with unified Check-In toggle
 function renderAttendeeRow(a) {
   const isVerified = a.emailVerified !== false && a.email_verified !== false;
@@ -659,6 +667,7 @@ function renderAttendeeRow(a) {
   const teamName = a.teamName || a.teams?.team_name || (a.team?.teamName) || '';
   const pathway = a.pathway || a.registrations?.pathway || (a.registration?.pathway) || (teamName ? 'TEAM' : 'INDIVIDUAL');
   const fullName = a.fullName || a.full_name || 'Participant';
+  const gender = getAttendeeGender(a);
   const email = a.email || '';
   const phone = a.phone || '';
   const track = a.track || a.preferred_track || 'Confidential Reporting';
@@ -695,6 +704,7 @@ function renderAttendeeRow(a) {
           <div class="participant-info">
             <div class="participant-name">
               <span>${escapeHtml(fullName)}</span>
+              ${gender ? `<span class="badge ${gender === 'Female' ? 'badge-primary' : 'badge-neutral'}" style="font-size: 0.65rem; margin-left: 0.25rem;">${escapeHtml(gender)}</span>` : ''}
               ${isLeader ? '<span class="badge badge-teal" style="font-size: 0.65rem; margin-left: 0.25rem;">LEADER</span>' : ''}
             </div>
             <div class="participant-email" title="${escapeHtml(email)}">${escapeHtml(email)}</div>
@@ -713,7 +723,10 @@ function renderAttendeeRow(a) {
       </td>
       <td>
         <div style="font-size: 0.85rem; color: var(--admin-text-primary); font-weight: 500;">${escapeHtml(typeof canonicalTrackName === 'function' ? canonicalTrackName(track) : track)}</div>
-        <div style="font-size: 0.75rem; color: var(--admin-text-muted); margin-top: 0.15rem;">${escapeHtml(discipline)}</div>
+        <div style="font-size: 0.75rem; color: var(--admin-text-muted); margin-top: 0.15rem;">
+          ${escapeHtml(discipline)}
+          ${gender ? `&bull; <strong style="color:var(--admin-text-secondary);">${escapeHtml(gender)}</strong>` : ''}
+        </div>
       </td>
       <td>
         ${isVerified 
@@ -1474,6 +1487,7 @@ window.openAttendeeModal = async function(id) {
           <div class="drawer-profile-contacts">
             <span>📧 ${escapeHtml(a.email)}</span>
             ${a.phone ? `<span>📱 ${escapeHtml(a.phone)}</span>` : ''}
+            <span>👤 Gender: <strong>${escapeHtml(getAttendeeGender(a) || 'N/A')}</strong></span>
             <span>📍 ${escapeHtml(a.city || 'Addis Ababa')}</span>
             <span>📅 Submitted: ${new Date(a.registration.submittedAt || a.createdAt).toLocaleDateString()}</span>
           </div>
@@ -1521,6 +1535,10 @@ window.openAttendeeModal = async function(id) {
           <div class="drawer-meta-item">
             <strong>City / Location</strong>
             <span>${escapeHtml(a.city || 'Addis Ababa')}</span>
+          </div>
+          <div class="drawer-meta-item">
+            <strong>Gender</strong>
+            <span class="badge ${getAttendeeGender(a) === 'Female' ? 'badge-primary' : 'badge-neutral'}">${escapeHtml(getAttendeeGender(a) || 'N/A')}</span>
           </div>
           <div class="drawer-meta-item">
             <strong>Registered At</strong>
@@ -2222,6 +2240,7 @@ window.downloadAttendeesCsv = async function(format = 'csv') {
     'Reference Code',
     'Pathway',
     'Full Name',
+    'Gender',
     'Email Address',
     'Phone Number',
     'City',
@@ -2248,6 +2267,7 @@ window.downloadAttendeesCsv = async function(format = 'csv') {
     const refCode = a.referenceCode || a.registrations?.reference_code || a.registration?.referenceCode || a.ticket_code || 'BE-2026';
     const pathway = a.pathway || a.registrations?.pathway || a.registration?.pathway || (a.teamName || a.teams?.team_name ? 'TEAM' : 'INDIVIDUAL');
     const fullName = a.fullName || a.full_name || 'Participant';
+    const gender = getAttendeeGender(a) || 'N/A';
     const email = a.email || '';
     const phone = a.phone || '';
     const city = a.city || 'Addis Ababa';
@@ -2266,6 +2286,7 @@ window.downloadAttendeesCsv = async function(format = 'csv') {
       escapeCell(refCode),
       escapeCell(pathway),
       escapeCell(fullName),
+      escapeCell(gender),
       escapeCell(email),
       escapeCell(phone),
       escapeCell(city),

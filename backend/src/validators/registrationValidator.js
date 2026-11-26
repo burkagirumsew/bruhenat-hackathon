@@ -57,6 +57,7 @@ function validateIndividualRegistration(body) {
     fullName,
     email,
     phone,
+    gender: (source.gender || 'Female').trim(),
     city: (source.city || 'Addis Ababa').trim(),
     discipline,
     experienceLevel: (source.experienceLevel || 'Not specified').trim(),
@@ -172,7 +173,8 @@ function validateTeamRegistration(body) {
       fullName: mName,
       email: mEmail,
       phone: mPhone,
-      role: mRole
+      role: mRole,
+      gender: (m.gender || 'Female').trim()
     });
   });
 
@@ -184,7 +186,8 @@ function validateTeamRegistration(body) {
       fullName: leaderName,
       email: leaderEmail,
       phone: leaderPhone,
-      role: leaderRole
+      role: leaderRole,
+      gender: (leaderData.gender || 'Female').trim()
     },
     members: validatedMembers,
     totalTeamSize,

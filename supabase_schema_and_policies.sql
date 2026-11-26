@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS public.attendees (
     full_name VARCHAR(128) NOT NULL,
     email VARCHAR(128) NOT NULL,
     phone VARCHAR(32),
+    gender VARCHAR(16) DEFAULT 'Female',
     city VARCHAR(64) DEFAULT 'Addis Ababa',
     discipline VARCHAR(64) NOT NULL,
     experience_level VARCHAR(32),
@@ -160,3 +161,7 @@ CREATE POLICY "Public select attendance" ON public.attendance FOR SELECT TO anon
 
 DROP POLICY IF EXISTS "Public select admins" ON public.admins;
 CREATE POLICY "Public select admins" ON public.admins FOR SELECT TO anon, authenticated USING (true);
+
+-- 9. Schema Upgrades & Migrations
+ALTER TABLE IF EXISTS public.attendees ADD COLUMN IF NOT EXISTS gender VARCHAR(16) DEFAULT 'Female';
+NOTIFY pgrst, 'reload schema';

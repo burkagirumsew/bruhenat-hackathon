@@ -77,17 +77,18 @@ async function registerIndividual(data) {
       // 4. Insert into attendees table with explicit confirmation values
       await tx.execute(
         `INSERT INTO attendees (
-          id, registration_id, team_id, full_name, email, phone, city,
+          id, registration_id, team_id, full_name, email, phone, gender, city,
           discipline, experience_level, preferred_track, skills,
           is_team_leader, matching_consent, eligibility_confirmed, safety_pledge_confirmed,
           email_verified, created_at, updated_at
-        ) VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, false, ?, ?, ?, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        ) VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, false, ?, ?, ?, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
         [
           attendeeId,
           registrationId,
           data.fullName,
           data.email,
           data.phone,
+          data.gender || 'Female',
           data.city,
           data.discipline,
           data.experienceLevel,
@@ -207,11 +208,11 @@ async function registerTeam(data) {
       // 5. Insert Team Leader into attendees
       await tx.execute(
         `INSERT INTO attendees (
-          id, registration_id, team_id, full_name, email, phone, city,
+          id, registration_id, team_id, full_name, email, phone, gender, city,
           discipline, experience_level, preferred_track, skills,
           is_team_leader, matching_consent, eligibility_confirmed, safety_pledge_confirmed,
           email_verified, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, 'Addis Ababa', ?, 'Leader', ?, NULL, true, false, ?, ?, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Addis Ababa', ?, 'Leader', ?, NULL, true, false, ?, ?, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
         [
           leaderId,
           registrationId,
@@ -219,6 +220,7 @@ async function registerTeam(data) {
           data.leader.fullName,
           data.leader.email,
           data.leader.phone,
+          data.leader.gender || 'Female',
           data.leader.role,
           data.selectedTrack,
           Boolean(data.eligibilityConfirmed),
@@ -242,11 +244,11 @@ async function registerTeam(data) {
         const memberId = generateId('att');
         await tx.execute(
           `INSERT INTO attendees (
-            id, registration_id, team_id, full_name, email, phone, city,
+            id, registration_id, team_id, full_name, email, phone, gender, city,
             discipline, experience_level, preferred_track, skills,
             is_team_leader, matching_consent, eligibility_confirmed, safety_pledge_confirmed,
             email_verified, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, 'Addis Ababa', ?, 'Member', ?, NULL, false, false, ?, ?, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Addis Ababa', ?, 'Member', ?, NULL, false, false, ?, ?, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
           [
             memberId,
             registrationId,
@@ -254,6 +256,7 @@ async function registerTeam(data) {
             member.fullName,
             member.email,
             member.phone || null,
+            member.gender || 'Female',
             member.role,
             data.selectedTrack,
             Boolean(data.eligibilityConfirmed),
